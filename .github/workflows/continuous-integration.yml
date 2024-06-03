@@ -11,7 +11,6 @@ jobs:
   lint-eslint:
     name: 'Lint: ESLint'
     uses: jrposada/github-actions/.github/workflows/npm-script.yml@v1
-
     with:
       script: lint:eslint
 
