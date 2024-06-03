@@ -1,0 +1,5 @@
+## Services
+
+Business logic.
+
+Add file `mod.rs` exporting each file like `pub mod <service_name>;`

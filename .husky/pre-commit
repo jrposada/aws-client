@@ -1,0 +1,8 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+. "$(dirname "$0")/node-checks.sh"
+
+echo '-----------'
+echo '- Linting -'
+echo '-----------'
+npm run lint

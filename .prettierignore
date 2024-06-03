@@ -1,0 +1,9 @@
+.editorconfig
+.gitignore
+.npmignore
+.prettierignore
+*.md
+*.svg
+/.husky
+/.vscode
+/src-tauri/target
