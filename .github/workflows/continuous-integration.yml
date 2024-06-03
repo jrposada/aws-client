@@ -1,0 +1,32 @@
+name: Continuous Integration
+
+on:
+  pull_request:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+jobs:
+  lint-eslint:
+    name: 'Lint: ESLint'
+    uses: jrposada/github-actions/.github/workflows/npm-script.yml@v1
+
+    with:
+      script: lint:eslint
+
+  lint-prettier:
+    name: 'Lint: Prettier'
+    uses: jrposada/github-actions/.github/workflows/npm-script.yml
+    with:
+      script: lint:prettier
+
+  lint-commits:
+    name: 'Lint: Commits'
+    uses: jrposada/github-actions/.github/workflows/conventional-commits.yml
+
+  test-unit:
+    name: 'Test: Unit'
+    uses: jrposada/github-actions/.github/workflows/npm-script.yml
+    with:
+      script: coverage
