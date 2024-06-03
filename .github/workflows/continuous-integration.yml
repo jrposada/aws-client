@@ -17,16 +17,16 @@ jobs:
 
   lint-prettier:
     name: 'Lint: Prettier'
-    uses: jrposada/github-actions/.github/workflows/npm-script.yml
+    uses: jrposada/github-actions/.github/workflows/npm-script.yml@v1
     with:
       script: lint:prettier
 
   lint-commits:
     name: 'Lint: Commits'
-    uses: jrposada/github-actions/.github/workflows/conventional-commits.yml
+    uses: jrposada/github-actions/.github/workflows/conventional-commits.yml@v1
 
   test-unit:
     name: 'Test: Unit'
-    uses: jrposada/github-actions/.github/workflows/npm-script.yml
+    uses: jrposada/github-actions/.github/workflows/npm-script.yml@v1
     with:
       script: coverage
