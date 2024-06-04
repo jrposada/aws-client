@@ -1,5 +1,4 @@
 import { Drawer, styled } from '@mui/material';
-import { DRAWER_WIDTH } from './app-layout-styles';
 
 const AppDrawer = styled(Drawer, {
     shouldForwardProp: (prop) => prop !== 'open',
@@ -7,7 +6,7 @@ const AppDrawer = styled(Drawer, {
     '& .MuiDrawer-paper': {
         position: 'relative',
         whiteSpace: 'nowrap',
-        width: DRAWER_WIDTH,
+        width: 240,
         transition: theme.transitions.create('width', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.enteringScreen,
