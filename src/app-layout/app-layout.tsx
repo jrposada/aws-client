@@ -29,6 +29,7 @@ const AppLayout: React.FunctionComponent = () => {
 
             <AppDrawer variant="permanent" open={open}>
                 <Toolbar
+                    variant="dense"
                     sx={{
                         display: 'flex',
                         alignItems: 'center',
