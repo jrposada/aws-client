@@ -1,5 +1,7 @@
 {
   "translation": {
+    "navigation.aurora-db": "Aurora DB",
+    "navigation.dynamo-db": "Dynamo DB",
     "side-menu.calculator": "Calculator"
   }
 }

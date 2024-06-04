@@ -3,7 +3,7 @@ import { Outlet } from '@tanstack/react-router';
 import { Suspense, lazy } from 'react';
 import { useLocalStorage } from '../core/hooks/use-local-storage/use-local-storage';
 import AppBar from './app-bar';
-import { navigationItems } from './navigation-items';
+import DrawerItems from './drawer-items';
 import AppDrawer from './styled/app-drawer';
 
 // Only load router dev tools in development mode.
@@ -38,7 +38,9 @@ const AppLayout: React.FunctionComponent = () => {
                     }}
                 ></Toolbar>
                 <Divider />
-                <List component="nav">{navigationItems}</List>
+                <List component="nav">
+                    <DrawerItems />
+                </List>
             </AppDrawer>
             <Box
                 component="main"
