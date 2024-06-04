@@ -54,7 +54,7 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({
                     backgroundColor: 'transparent',
                 }}
             >
-                <Toolbar />
+                <Toolbar variant="dense" />
             </StyledAppBar>
             <StyledAppBar
                 position="absolute"
@@ -63,7 +63,7 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({
                     pointerEvents: 'none',
                 }}
             >
-                <Toolbar>
+                <Toolbar variant="dense">
                     {open && (
                         <AppBarButton
                             aria-label="close drawer"
