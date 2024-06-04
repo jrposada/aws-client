@@ -52,6 +52,7 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({
                 onMouseDown={handleAppBarMouseDown}
                 style={{
                     backgroundColor: 'transparent',
+                    boxShadow: 'none',
                 }}
             >
                 <Toolbar variant="dense" />
@@ -64,27 +65,17 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({
                 }}
             >
                 <Toolbar variant="dense">
-                    {open && (
-                        <AppBarButton
-                            aria-label="close drawer"
-                            onClick={toggleDrawer}
-                        >
-                            <ChevronLeftIcon />
-                        </AppBarButton>
-                    )}
-                    {!open && (
-                        <AppBarButton
-                            aria-label="open drawer"
-                            color="inherit"
-                            edge="start"
-                            onClick={toggleDrawer}
-                            sx={{
-                                marginRight: '36px',
-                            }}
-                        >
-                            <MenuIcon />
-                        </AppBarButton>
-                    )}
+                    <AppBarButton
+                        aria-label="open drawer"
+                        color="inherit"
+                        edge="start"
+                        onClick={toggleDrawer}
+                        sx={{
+                            marginRight: '36px',
+                        }}
+                    >
+                        {open ? <ChevronLeftIcon /> : <MenuIcon />}
+                    </AppBarButton>
 
                     <Typography
                         component="h1"
