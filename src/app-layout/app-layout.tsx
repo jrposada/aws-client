@@ -1,4 +1,4 @@
-import { Box, Container, Divider, List, Toolbar } from '@mui/material';
+import { Box, Divider, List, Toolbar } from '@mui/material';
 import { Outlet } from '@tanstack/react-router';
 import { Suspense, lazy } from 'react';
 import { useLocalStorage } from '../core/hooks/use-local-storage/use-local-storage';
@@ -38,7 +38,7 @@ const AppLayout: React.FunctionComponent = () => {
                     }}
                 ></Toolbar>
                 <Divider />
-                <List component="nav">
+                <List>
                     <DrawerItems />
                 </List>
             </AppDrawer>
@@ -56,22 +56,11 @@ const AppLayout: React.FunctionComponent = () => {
                     flexDirection: 'column',
                 }}
             >
-                <Toolbar />
-                <Container
-                    maxWidth={false}
-                    sx={{
-                        mt: 4,
-                        mb: 4,
-                        flexGrow: 1,
-                        display: 'flex',
-                        flexDirection: 'column',
-                    }}
-                >
-                    <Outlet />
-                    <Suspense>
-                        <TanStackRouterDevtools />
-                    </Suspense>
-                </Container>
+                <Toolbar variant="dense" />
+                <Outlet />
+                <Suspense>
+                    <TanStackRouterDevtools />
+                </Suspense>
             </Box>
         </Box>
     );
