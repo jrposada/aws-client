@@ -1,10 +1,7 @@
 import { Box, Tab, Tabs, TabsProps } from '@mui/material';
 import { invoke } from '@tauri-apps/api';
 import { FunctionComponent, useState } from 'react';
-import AceEditor from 'react-ace';
-import 'ace-builds/src-noconflict/ext-language_tools';
-import 'ace-builds/src-noconflict/mode-javascript';
-import 'ace-builds/src-noconflict/theme-github';
+import RequestTab from '../request-tab/request-tab';
 
 const tabHeight = '2rem';
 
@@ -41,7 +38,14 @@ const HomeRoute: FunctionComponent = () => {
     };
 
     return (
-        <>
+        <Box
+            sx={{
+                pb: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                flexGrow: 1,
+            }}
+        >
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs
                     onChange={handleChange}
@@ -57,21 +61,8 @@ const HomeRoute: FunctionComponent = () => {
                     <Tab label="Item Three" {...a11yProps(2)} />
                 </Tabs>
             </Box>
-            <AceEditor
-                mode="json"
-                width="100%"
-                height="100%"
-                value={`${greet} ${value}`}
-                theme="github"
-                highlightActiveLine
-                setOptions={{
-                    enableLiveAutocompletion: true,
-                    showLineNumbers: true,
-                    tabSize: 2,
-                }}
-                editorProps={{ $blockScrolling: true }}
-            />
-        </>
+            <RequestTab value={`${greet} ${value}`} />
+        </Box>
     );
 };
 
