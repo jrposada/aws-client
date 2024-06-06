@@ -6,14 +6,12 @@ import ListItemText from '@mui/material/ListItemText';
 import { t } from 'i18next';
 import { MouseEventHandler, useState } from 'react';
 
-type Service = 'aurora-db' | 'dynamo-db';
-
 const DrawerItems: React.FunctionComponent = () => {
     const [contextMenu, setContextMenu] = useState<{
         mouseY: number;
         mouseX: number;
     } | null>(null);
-    const [service, setService] = useState<Service>();
+    const [service, setService] = useState<string>();
 
     const handleContextMenu: MouseEventHandler<HTMLElement> = (event) => {
         event.preventDefault();

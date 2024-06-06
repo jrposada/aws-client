@@ -2,6 +2,7 @@ import { Box, Tab, Tabs, TabsProps } from '@mui/material';
 import { invoke } from '@tauri-apps/api';
 import { FunctionComponent, useState } from 'react';
 import RequestTab from '../request-tab/request-tab';
+import { useRequestService } from '../../core/hooks/request-context/use-request-service';
 
 const tabHeight = '2rem';
 
@@ -10,21 +11,8 @@ const sxHeight = {
     minHeight: tabHeight,
 };
 
-function a11yProps(index: number) {
-    return {
-        id: `simple-tab-${index}`,
-        'aria-controls': `simple-tabpanel-${index}`,
-        sx: {
-            fontSize: 'caption.fontSize',
-            paddingBlock: '1px',
-            paddingInline: '1px',
-            ...sxHeight,
-        },
-    };
-}
-
 const HomeRoute: FunctionComponent = () => {
-    const [value, setValue] = useState(0);
+    const requestService = useRequestService();
 
     const [greet, setGreet] = useState('');
 
@@ -34,7 +22,7 @@ const HomeRoute: FunctionComponent = () => {
         .then((response) => setGreet(response));
 
     const handleChange: TabsProps['onChange'] = (_, nextValue: number) => {
-        setValue(nextValue);
+        requestService.setCurrentTabByIndex(nextValue);
     };
 
     return (
@@ -49,19 +37,33 @@ const HomeRoute: FunctionComponent = () => {
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs
                     onChange={handleChange}
-                    value={value}
+                    value={requestService.currentTabIndex}
                     scrollButtons="auto"
                     variant="scrollable"
                     sx={{
                         ...sxHeight,
                     }}
                 >
-                    <Tab label="Item One" {...a11yProps(0)} />
-                    <Tab label="Item Two" {...a11yProps(1)} />
-                    <Tab label="Item Three" {...a11yProps(2)} />
+                    {requestService.tabs.map(({ title, id }, index) => (
+                        <Tab
+                            label={title}
+                            key={id}
+                            id={`${index}`}
+                            sx={{
+                                fontSize: 'caption.fontSize',
+                                paddingBlock: '1px',
+                                paddingInline: '1px',
+                                ...sxHeight,
+                            }}
+                        />
+                    ))}
                 </Tabs>
             </Box>
-            <RequestTab value={`${greet} ${value}`} />
+            {Boolean(requestService.currentTab) && (
+                <RequestTab
+                    value={`${greet} ${requestService.currentTab!.id}`}
+                />
+            )}
         </Box>
     );
 };
