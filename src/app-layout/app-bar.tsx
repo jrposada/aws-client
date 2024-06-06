@@ -1,31 +1,122 @@
-import {
-    AppBar as MuiAppBar,
-    AppBarProps as MuiAppBarProps,
-    styled,
-} from '@mui/material';
-import { DRAWER_WIDTH } from './app-layout-styles';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
+import FilterNoneRoundedIcon from '@mui/icons-material/FilterNoneRounded';
+import HorizontalRuleRoundedIcon from '@mui/icons-material/HorizontalRuleRounded';
+import MenuIcon from '@mui/icons-material/Menu';
+import { Toolbar, Typography } from '@mui/material';
+import { appWindow } from '@tauri-apps/api/window';
+import { t } from 'i18next';
+import { MouseEventHandler, useState } from 'react';
+import StyledAppBar from './styled/app-bar';
+import AppBarButton from './styled/app-bar-button';
 
-interface AppBarProps extends MuiAppBarProps {
-    open?: boolean;
-}
+type AppBarProps = {
+    open: boolean;
+    toggleDrawer: () => void;
+};
 
-const AppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
-})<AppBarProps>(({ theme, open }) => ({
-    zIndex: theme.zIndex.drawer + 1,
-    transition: theme.transitions.create(['width', 'margin'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
-    ...(open && {
-        marginLeft: DRAWER_WIDTH,
-        width: `calc(100% - ${DRAWER_WIDTH}px)`,
-        transition: theme.transitions.create(['width', 'margin'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-        }),
-    }),
-}));
+const AppBar: React.FunctionComponent<AppBarProps> = ({
+    open,
+    toggleDrawer,
+}) => {
+    const [isMaximized, setIsMaximized] = useState(false);
+
+    const handleAppBarMouseDown: MouseEventHandler = () => {
+        appWindow.startDragging();
+    };
+
+    const handleMinimize = () => {
+        appWindow.minimize();
+    };
+
+    const handleUnMaximize = () => {
+        appWindow.unmaximize();
+        setIsMaximized(false);
+    };
+
+    const handleMaximize: MouseEventHandler = () => {
+        appWindow.maximize();
+        setIsMaximized(true);
+    };
+
+    const handleClose: MouseEventHandler = () => {
+        appWindow.close();
+    };
+
+    return (
+        <>
+            {/* Duplicate app bar to detect dragging */}
+            <StyledAppBar
+                position="absolute"
+                onMouseDown={handleAppBarMouseDown}
+                style={{
+                    backgroundColor: 'transparent',
+                    boxShadow: 'none',
+                }}
+            >
+                <Toolbar variant="dense" />
+            </StyledAppBar>
+            <StyledAppBar
+                position="absolute"
+                open={open}
+                style={{
+                    pointerEvents: 'none',
+                }}
+            >
+                <Toolbar variant="dense">
+                    <AppBarButton
+                        aria-label="open drawer"
+                        color="inherit"
+                        edge="start"
+                        onClick={toggleDrawer}
+                        sx={{
+                            marginRight: '36px',
+                        }}
+                    >
+                        {open ? <ChevronLeftIcon /> : <MenuIcon />}
+                    </AppBarButton>
+
+                    <Typography
+                        component="h1"
+                        variant="h6"
+                        color="inherit"
+                        noWrap
+                        sx={{ flexGrow: 1 }}
+                    >
+                        {t('home')}
+                    </Typography>
+
+                    <AppBarButton color="inherit" onClick={handleMinimize}>
+                        <HorizontalRuleRoundedIcon />
+                    </AppBarButton>
+
+                    {isMaximized && (
+                        <AppBarButton
+                            color="inherit"
+                            onClick={handleUnMaximize}
+                        >
+                            <FilterNoneRoundedIcon
+                                style={{
+                                    transform: 'rotate(180deg)',
+                                }}
+                            />
+                        </AppBarButton>
+                    )}
+                    {!isMaximized && (
+                        <AppBarButton color="inherit" onClick={handleMaximize}>
+                            <CropSquareRoundedIcon />
+                        </AppBarButton>
+                    )}
+
+                    <AppBarButton color="inherit" onClick={handleClose}>
+                        <CloseRoundedIcon />
+                    </AppBarButton>
+                </Toolbar>
+            </StyledAppBar>
+        </>
+    );
+};
 
 export default AppBar;
-export type { AppBarProps };
+1;
