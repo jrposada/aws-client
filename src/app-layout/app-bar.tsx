@@ -1,12 +1,12 @@
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import MenuIcon from '@mui/icons-material/Menu';
-import { Toolbar, Typography, useTheme } from '@mui/material';
+import { Toolbar, useTheme } from '@mui/material';
 import { appWindow } from '@tauri-apps/api/window';
-import { t } from 'i18next';
 import { MouseEventHandler } from 'react';
-import StyledAppBar from './styled/app-bar';
-import AppBarButton from './styled/app-bar-button';
 import AppWindowButtons from './app-window-buttons';
+import NewButton from './new-button';
+import StyledAppBar from './styled/app-bar';
+import AppBarIconButton from './styled/app-bar-icon-button';
 
 type AppBarProps = {
     open: boolean;
@@ -44,31 +44,23 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({
             >
                 <Toolbar
                     variant="dense"
+                    sx={{
+                        gap: 1,
+                    }}
                     style={{
                         paddingRight: 0,
                     }}
                 >
-                    <AppBarButton
+                    <AppBarIconButton
                         aria-label="open drawer"
                         color="inherit"
                         edge="start"
                         onClick={toggleDrawer}
-                        sx={{
-                            marginRight: '36px',
-                        }}
                     >
                         {open ? <ChevronLeftIcon /> : <MenuIcon />}
-                    </AppBarButton>
+                    </AppBarIconButton>
 
-                    <Typography
-                        component="h1"
-                        variant="h6"
-                        color="inherit"
-                        noWrap
-                        sx={{ flexGrow: 1 }}
-                    >
-                        {t('home')}
-                    </Typography>
+                    <NewButton />
 
                     <AppWindowButtons />
                 </Toolbar>

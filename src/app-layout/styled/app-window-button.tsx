@@ -1,11 +1,10 @@
 import styled from '@emotion/styled';
-import { blue } from '@mui/material/colors';
-import AppBarButton, { AppBarButtonProps } from './app-bar-button';
+import AppBarIconButton, { AppBarIconButtonProps } from './app-bar-icon-button';
 
-interface AppWindowButtonProps extends AppBarButtonProps {}
+interface AppWindowButtonProps extends AppBarIconButtonProps {}
 
 const AppWindowButton = styled(
-    AppBarButton,
+    AppBarIconButton,
     {},
 )<AppWindowButtonProps>(({}) => ({
     borderRadius: 0,

@@ -2,9 +2,21 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
 import FilterNoneRoundedIcon from '@mui/icons-material/FilterNoneRounded';
 import HorizontalRuleRoundedIcon from '@mui/icons-material/HorizontalRuleRounded';
+import { SvgIconTypeMap } from '@mui/material';
+import { DefaultComponentProps } from '@mui/material/OverridableComponent';
 import { appWindow } from '@tauri-apps/api/window';
 import { FunctionComponent, MouseEventHandler, useState } from 'react';
-import AppWindowButton from './styled/app-window-button';
+import AppWindowButton, {
+    AppWindowButtonProps,
+} from './styled/app-window-button';
+
+const buttonProps: Partial<AppWindowButtonProps> = {
+    color: 'inherit',
+};
+
+const iconProps: DefaultComponentProps<SvgIconTypeMap<{}, 'svg'>> = {
+    fontSize: 'small',
+};
 
 const AppWindowButtons: FunctionComponent = () => {
     const [isMaximized, setIsMaximized] = useState(false);
@@ -26,15 +38,19 @@ const AppWindowButtons: FunctionComponent = () => {
         appWindow.close();
     };
     return (
-        <>
-            <AppWindowButton color="inherit" onClick={handleMinimize}>
-                <HorizontalRuleRoundedIcon fontSize="small" />
+        <div
+            style={{
+                marginLeft: 'auto',
+            }}
+        >
+            <AppWindowButton {...buttonProps} onClick={handleMinimize}>
+                <HorizontalRuleRoundedIcon {...iconProps} />
             </AppWindowButton>
 
             {isMaximized && (
-                <AppWindowButton color="inherit" onClick={handleUnMaximize}>
+                <AppWindowButton {...buttonProps} onClick={handleUnMaximize}>
                     <FilterNoneRoundedIcon
-                        fontSize="small"
+                        {...iconProps}
                         style={{
                             transform: 'rotate(180deg)',
                         }}
@@ -42,15 +58,15 @@ const AppWindowButtons: FunctionComponent = () => {
                 </AppWindowButton>
             )}
             {!isMaximized && (
-                <AppWindowButton color="inherit" onClick={handleMaximize}>
-                    <CropSquareRoundedIcon fontSize="small" />
+                <AppWindowButton {...buttonProps} onClick={handleMaximize}>
+                    <CropSquareRoundedIcon {...iconProps} />
                 </AppWindowButton>
             )}
 
-            <AppWindowButton color="inherit" onClick={handleClose}>
-                <CloseRoundedIcon fontSize="small" />
+            <AppWindowButton onClick={handleClose} {...buttonProps}>
+                <CloseRoundedIcon {...iconProps} />
             </AppWindowButton>
-        </>
+        </div>
     );
 };
 

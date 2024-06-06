@@ -1,9 +1,9 @@
-import { IconButton, IconButtonProps, styled } from '@mui/material';
+import { Button, ButtonProps, styled } from '@mui/material';
 
-interface AppBarButtonProps extends IconButtonProps {}
+interface AppBarButtonProps extends ButtonProps {}
 
 const AppBarButton = styled(
-    IconButton,
+    Button,
     {},
 )<AppBarButtonProps>(({}) => ({
     pointerEvents: 'auto',
