@@ -1,15 +1,12 @@
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
-import FilterNoneRoundedIcon from '@mui/icons-material/FilterNoneRounded';
-import HorizontalRuleRoundedIcon from '@mui/icons-material/HorizontalRuleRounded';
 import MenuIcon from '@mui/icons-material/Menu';
 import { Toolbar, Typography, useTheme } from '@mui/material';
 import { appWindow } from '@tauri-apps/api/window';
 import { t } from 'i18next';
-import { MouseEventHandler, useState } from 'react';
+import { MouseEventHandler } from 'react';
 import StyledAppBar from './styled/app-bar';
 import AppBarButton from './styled/app-bar-button';
+import AppWindowButtons from './app-window-buttons';
 
 type AppBarProps = {
     open: boolean;
@@ -21,28 +18,9 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({
     toggleDrawer,
 }) => {
     const theme = useTheme();
-    const [isMaximized, setIsMaximized] = useState(false);
 
     const handleAppBarMouseDown: MouseEventHandler = () => {
         appWindow.startDragging();
-    };
-
-    const handleMinimize = () => {
-        appWindow.minimize();
-    };
-
-    const handleUnMaximize = () => {
-        appWindow.unmaximize();
-        setIsMaximized(false);
-    };
-
-    const handleMaximize: MouseEventHandler = () => {
-        appWindow.maximize();
-        setIsMaximized(true);
-    };
-
-    const handleClose: MouseEventHandler = () => {
-        appWindow.close();
     };
 
     return (
@@ -52,24 +30,24 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({
                 variant="dense"
                 onMouseDown={handleAppBarMouseDown}
                 sx={{
-                    zIndex: 'zIndex.drawer',
-                }}
-                style={{
                     position: 'absolute',
-                    width: '100%',
-                    backgroundColor: 'transparent',
-                    boxShadow: 'none',
+                    width: 1,
                     zIndex: theme.zIndex.drawer,
                 }}
             />
             <StyledAppBar
                 position="absolute"
                 open={open}
-                style={{
+                sx={{
                     pointerEvents: 'none',
                 }}
             >
-                <Toolbar variant="dense">
+                <Toolbar
+                    variant="dense"
+                    style={{
+                        paddingRight: 0,
+                    }}
+                >
                     <AppBarButton
                         aria-label="open drawer"
                         color="inherit"
@@ -92,31 +70,7 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({
                         {t('home')}
                     </Typography>
 
-                    <AppBarButton color="inherit" onClick={handleMinimize}>
-                        <HorizontalRuleRoundedIcon />
-                    </AppBarButton>
-
-                    {isMaximized && (
-                        <AppBarButton
-                            color="inherit"
-                            onClick={handleUnMaximize}
-                        >
-                            <FilterNoneRoundedIcon
-                                style={{
-                                    transform: 'rotate(180deg)',
-                                }}
-                            />
-                        </AppBarButton>
-                    )}
-                    {!isMaximized && (
-                        <AppBarButton color="inherit" onClick={handleMaximize}>
-                            <CropSquareRoundedIcon />
-                        </AppBarButton>
-                    )}
-
-                    <AppBarButton color="inherit" onClick={handleClose}>
-                        <CloseRoundedIcon />
-                    </AppBarButton>
+                    <AppWindowButtons />
                 </Toolbar>
             </StyledAppBar>
         </>
