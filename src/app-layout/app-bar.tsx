@@ -4,7 +4,7 @@ import CropSquareRoundedIcon from '@mui/icons-material/CropSquareRounded';
 import FilterNoneRoundedIcon from '@mui/icons-material/FilterNoneRounded';
 import HorizontalRuleRoundedIcon from '@mui/icons-material/HorizontalRuleRounded';
 import MenuIcon from '@mui/icons-material/Menu';
-import { Toolbar, Typography } from '@mui/material';
+import { Toolbar, Typography, useTheme } from '@mui/material';
 import { appWindow } from '@tauri-apps/api/window';
 import { t } from 'i18next';
 import { MouseEventHandler, useState } from 'react';
@@ -20,6 +20,7 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({
     open,
     toggleDrawer,
 }) => {
+    const theme = useTheme();
     const [isMaximized, setIsMaximized] = useState(false);
 
     const handleAppBarMouseDown: MouseEventHandler = () => {
@@ -46,17 +47,21 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({
 
     return (
         <>
-            {/* Duplicate app bar to detect dragging */}
-            <StyledAppBar
-                position="absolute"
+            {/* Dummy toolbar for dragging */}
+            <Toolbar
+                variant="dense"
                 onMouseDown={handleAppBarMouseDown}
+                sx={{
+                    zIndex: 'zIndex.drawer',
+                }}
                 style={{
+                    position: 'absolute',
+                    width: '100%',
                     backgroundColor: 'transparent',
                     boxShadow: 'none',
+                    zIndex: theme.zIndex.drawer,
                 }}
-            >
-                <Toolbar variant="dense" />
-            </StyledAppBar>
+            />
             <StyledAppBar
                 position="absolute"
                 open={open}
