@@ -20,7 +20,7 @@ const ClosableTab: FunctionComponent<ClosableTabProps> = ({
             id={id}
             label={
                 <>
-                    <Box sx={{ pl: 1, pr: 4 }}>{label}</Box>
+                    <Box sx={{ pl: 3, pr: 3 }}>{label}</Box>
                     <IconButton
                         className="close-icon"
                         onClick={(e) => {
