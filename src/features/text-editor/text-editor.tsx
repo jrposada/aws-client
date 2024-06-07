@@ -1,16 +1,21 @@
-import { FunctionComponent } from 'react';
+import AceEditor, { IAceEditorProps } from 'react-ace';
 
-import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/ext-language_tools';
 import 'ace-builds/src-noconflict/mode-javascript';
 import 'ace-builds/src-noconflict/theme-github';
+
 import { Box } from '@mui/material';
+import { FunctionComponent } from 'react';
 
 type TextEditorProps = {
+    onChange: IAceEditorProps['onChange'];
     value: string;
 };
 
-const TextEditor: FunctionComponent<TextEditorProps> = ({ value }) => {
+const TextEditor: FunctionComponent<TextEditorProps> = ({
+    onChange,
+    value,
+}) => {
     return (
         <>
             <Box
@@ -26,6 +31,7 @@ const TextEditor: FunctionComponent<TextEditorProps> = ({ value }) => {
                     width="100%"
                     height="100%"
                     value={`${value}`}
+                    onChange={onChange}
                     theme="github"
                     highlightActiveLine
                     setOptions={{

@@ -1,7 +1,6 @@
 import { Box, Tab, Tabs, TabsProps } from '@mui/material';
-import { invoke } from '@tauri-apps/api';
-import { FunctionComponent, useState } from 'react';
-import RequestTab from '../request-tab/request-tab';
+import { FunctionComponent } from 'react';
+import RequestPanel from '../request-panel/request-panel';
 import { useRequestService } from '../../core/hooks/request-context/use-request-service';
 
 const tabHeight = '2rem';
@@ -13,13 +12,6 @@ const sxHeight = {
 
 const HomeRoute: FunctionComponent = () => {
     const requestService = useRequestService();
-
-    const [greet, setGreet] = useState('');
-
-    // now we can call our Command!
-    invoke<string>('greet', { name: 'World' })
-        // `invoke` returns a Promise
-        .then((response) => setGreet(response));
 
     const handleChange: TabsProps['onChange'] = (_, nextValue: number) => {
         requestService.setCurrentTabByIndex(nextValue);
@@ -59,10 +51,8 @@ const HomeRoute: FunctionComponent = () => {
                     ))}
                 </Tabs>
             </Box>
-            {Boolean(requestService.currentTab) && (
-                <RequestTab
-                    value={`${greet} ${requestService.currentTab!.id}`}
-                />
+            {!!requestService.currentTab && (
+                <RequestPanel data={requestService.currentTab} />
             )}
         </Box>
     );
