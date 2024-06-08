@@ -11,7 +11,6 @@ const DrawerItems: React.FunctionComponent = () => {
         mouseY: number;
         mouseX: number;
     } | null>(null);
-    const [service, setService] = useState<string>();
 
     const handleContextMenu: MouseEventHandler<HTMLElement> = (event) => {
         event.preventDefault();
@@ -29,14 +28,12 @@ const DrawerItems: React.FunctionComponent = () => {
         event,
     ) => {
         handleContextMenu(event);
-        setService('aurora-db');
     };
 
     const handleDynamoDbContextMenu: MouseEventHandler<HTMLElement> = (
         event,
     ) => {
         handleContextMenu(event);
-        setService('dynamo-db');
     };
 
     const handleClose = () => {
@@ -44,8 +41,6 @@ const DrawerItems: React.FunctionComponent = () => {
     };
 
     const handleNew = () => {
-        console.log(service);
-        setService(undefined);
         handleClose();
     };
 

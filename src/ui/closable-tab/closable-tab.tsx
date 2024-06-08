@@ -20,7 +20,7 @@ const ClosableTab: FunctionComponent<ClosableTabProps> = ({
             id={id}
             label={
                 <>
-                    <Box sx={{ pl: 3, pr: 3 }}>{label}</Box>
+                    <Box sx={{ pl: 4, pr: 4 }}>{label}</Box>
                     <IconButton
                         className="close-icon"
                         onClick={(e) => {
@@ -38,6 +38,7 @@ const ClosableTab: FunctionComponent<ClosableTabProps> = ({
 };
 
 export default ClosableTab;
+export type { ClosableTabProps };
 
 // function TabsWithClose() {
 //   const [tabs, setTabs] = useState(['Tab 1', 'Tab 2', 'Tab 3']);

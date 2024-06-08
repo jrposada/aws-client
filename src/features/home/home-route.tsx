@@ -2,7 +2,9 @@ import { Box, Tabs, TabsProps } from '@mui/material';
 import { FunctionComponent } from 'react';
 import { useRequestService } from '../../core/hooks/request-context/use-request-service';
 import RequestPanel from '../request-panel/request-panel';
-import ClosableTab from '../../ui/closable-tab/closable-tab';
+import ClosableTab, {
+    ClosableTabProps,
+} from '../../ui/closable-tab/closable-tab';
 
 const tabHeight = '2rem';
 
@@ -16,6 +18,10 @@ const HomeRoute: FunctionComponent = () => {
 
     const handleChange: TabsProps['onChange'] = (_, nextValue: number) => {
         requestService.setCurrentTabByIndex(nextValue);
+    };
+
+    const handleClose: ClosableTabProps['onClose'] = (index) => {
+        requestService.removeTab(index);
     };
 
     return (
@@ -42,6 +48,7 @@ const HomeRoute: FunctionComponent = () => {
                             label={title}
                             key={id}
                             id={`${index}`}
+                            onClose={handleClose}
                             sx={{
                                 fontSize: 'caption.fontSize',
                                 paddingBlock: '1px',

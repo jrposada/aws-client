@@ -37,36 +37,56 @@ class RequestService {
     #currentTab: TabData | undefined;
     #tabs: TabData[] = [];
 
-    constructor(private setters: RequestServiceSetters) {}
+    constructor(private _setters: RequestServiceSetters) {}
 
     addTab(type: RequestType): void {
-        this.setters.setTabs((prev) => {
+        this._setters.setTabs((prev) => {
             const id = uuid();
 
             const tab: TabData = {
                 title: type,
                 id,
-                text: '',
-                setText: () => {}, // needs to be hooked
-                send: () => {}, // needs to be hooked
+                text: type,
+                setText: () => {}, // needs to be hooked below
+                send: () => {}, // needs to be hooked below
             };
             this.#hookTab(tab);
 
             const next = [...prev, tab];
-            this.setters.setCurrentTab(tab);
+            this._setters.setCurrentTab(tab);
             return next;
         });
     }
 
-    setCurrentTab(id?: string): void {
-        this.setters.setCurrentTab(
-            this.tabs.find((tab) => tab.id === id) ??
-                this.tabs[this.tabs.length - 1],
-        );
+    removeTab(indexString: string | undefined) {
+        const index = Number(indexString);
+        if (!indexString || isNaN(index)) {
+            console.error(
+                `Error removing tab with index "${indexString}". Invalid index`,
+            );
+            return;
+        }
+
+        this._setters.setTabs((prev) => {
+            if (index < 0 || index > prev.length) {
+                console.error(
+                    `Error removing tab with index "${indexString}". Index out of bounds`,
+                );
+                return prev;
+            }
+
+            const next = [...prev.slice(0, index), ...prev.slice(index + 1)];
+
+            if (this.currentTabIndex ?? index >= next.length) {
+                this._setters.setCurrentTab(next[next.length - 1]);
+            }
+
+            return next;
+        });
     }
 
     setCurrentTabByIndex(index: number): void {
-        this.setters.setCurrentTab(this.tabs[index]);
+        this._setters.setCurrentTab(this.tabs[index]);
     }
 
     _refresh(states: RequestServiceStates): void {
@@ -111,9 +131,9 @@ class RequestService {
 
     #updateTabAtIndex(index: number, tab: TabData) {
         if (this.#currentTab?.id === tab.id) {
-            this.setters.setCurrentTab(tab);
+            this._setters.setCurrentTab(tab);
         }
-        this.setters.setTabs((prev) => {
+        this._setters.setTabs((prev) => {
             const next = [...prev];
             next[index] = tab;
             return next;
@@ -122,7 +142,7 @@ class RequestService {
 }
 
 export { RequestService };
-export type { TabData as TabInfo, RequestType };
+export type { RequestType, TabData as TabInfo };
 
 // const [greet, setGreet] = useState('');
 
