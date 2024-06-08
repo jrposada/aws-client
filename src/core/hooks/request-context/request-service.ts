@@ -5,6 +5,9 @@ type RequestType = 'dynamo-db' | 'open-search' | 'rds';
 
 type TabData = {
     id: string;
+    send: () => void;
+    setText: Dispatch<SetStateAction<string>>;
+    text: string;
     title: string;
 };
 
@@ -34,33 +37,116 @@ class RequestService {
     #currentTab: TabData | undefined;
     #tabs: TabData[] = [];
 
-    constructor(private setters: RequestServiceSetters) {}
+    constructor(private _setters: RequestServiceSetters) {}
 
     addTab(type: RequestType): void {
-        this.setters.setTabs((prev) => {
-            const tab: TabData = { title: type, id: uuid() };
+        this._setters.setTabs((prev) => {
+            const id = uuid();
+
+            const tab: TabData = {
+                title: type,
+                id,
+                text: type,
+                setText: () => {}, // needs to be hooked below
+                send: () => {}, // needs to be hooked below
+            };
+            this.#hookTab(tab);
+
             const next = [...prev, tab];
-            this.setters.setCurrentTab(tab);
+            this._setters.setCurrentTab(tab);
             return next;
         });
     }
 
-    setCurrentTab(id?: string): void {
-        this.setters.setCurrentTab(
-            this.tabs.find((tab) => tab.id === id) ??
-                this.tabs[this.tabs.length - 1],
-        );
+    removeTab(indexString: string | undefined) {
+        const index = Number(indexString);
+        if (!indexString || isNaN(index)) {
+            console.error(
+                `Error removing tab with index "${indexString}". Invalid index`,
+            );
+            return;
+        }
+
+        this._setters.setTabs((prev) => {
+            if (index < 0 || index > prev.length) {
+                console.error(
+                    `Error removing tab with index "${indexString}". Index out of bounds`,
+                );
+                return prev;
+            }
+
+            const next = [...prev.slice(0, index), ...prev.slice(index + 1)];
+
+            if (this.currentTabIndex ?? index >= next.length) {
+                this._setters.setCurrentTab(next[next.length - 1]);
+            }
+
+            return next;
+        });
     }
 
     setCurrentTabByIndex(index: number): void {
-        this.setters.setCurrentTab(this.tabs[index]);
+        this._setters.setCurrentTab(this.tabs[index]);
     }
 
     _refresh(states: RequestServiceStates): void {
         this.#currentTab = states.currentTab;
         this.#tabs = states.tabs;
+
+        if (this.#currentTab) {
+            this.#hookTab(this.#currentTab);
+        }
+
+        this.#tabs.forEach((tab) => {
+            this.#hookTab(tab);
+        });
+    }
+
+    #hookTab(tab: TabData) {
+        const setText: TabData['setText'] = (setter) => {
+            const tabIndex = this.#tabs.findIndex((item) => item.id === tab.id);
+
+            if (tabIndex < 0) {
+                throw new Error(`Tab with id "${tab.id}" not found`);
+            }
+
+            const value =
+                typeof setter !== 'function'
+                    ? setter
+                    : setter(this.#tabs[tabIndex].text);
+
+            this.#updateTabAtIndex(tabIndex, {
+                ...this.#tabs[tabIndex],
+                text: value,
+            });
+        };
+
+        const send: TabData['send'] = () => {
+            console.log('Send', tab.text);
+        };
+
+        tab.setText = setText;
+        tab.send = send;
+    }
+
+    #updateTabAtIndex(index: number, tab: TabData) {
+        if (this.#currentTab?.id === tab.id) {
+            this._setters.setCurrentTab(tab);
+        }
+        this._setters.setTabs((prev) => {
+            const next = [...prev];
+            next[index] = tab;
+            return next;
+        });
     }
 }
 
 export { RequestService };
-export type { TabData as TabInfo, RequestType };
+export type { RequestType, TabData as TabInfo };
+
+// const [greet, setGreet] = useState('');
+
+// // now we can call our Command!
+// invoke<string>('greet', { name: 'World' })
+// // `invoke` returns a Promise
+// .then((response) => setGreet(response));

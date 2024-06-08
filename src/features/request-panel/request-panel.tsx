@@ -1,15 +1,19 @@
-import { FunctionComponent, MouseEventHandler } from 'react';
-import TextEditor, { TextEditorProps } from '../text-editor/text-editor';
 import { Box, Button } from '@mui/material';
+import { FunctionComponent, MouseEventHandler } from 'react';
+import { TabInfo } from '../../core/hooks/request-context/request-service';
 import ResponseViewport from '../response-viewport/response-viewport';
+import TextEditor, { TextEditorProps } from '../text-editor/text-editor';
 
-type RequestTabProps = {
-    value: TextEditorProps['value'];
+type RequestPanelProps = {
+    data: TabInfo;
 };
 
-const RequestTab: FunctionComponent<RequestTabProps> = ({ value }) => {
+const RequestPanel: FunctionComponent<RequestPanelProps> = ({ data }) => {
+    const handleValueChange: TextEditorProps['onChange'] = (next) => {
+        data.setText(next);
+    };
     const handleSend: MouseEventHandler<HTMLButtonElement> = () => {
-        console.log('send');
+        data.send();
     };
 
     return (
@@ -35,11 +39,11 @@ const RequestTab: FunctionComponent<RequestTabProps> = ({ value }) => {
                         Send
                     </Button>
                 </Box>
-                <TextEditor value={value} />
+                <TextEditor value={data.text} onChange={handleValueChange} />
                 <ResponseViewport />
             </Box>
         </>
     );
 };
 
-export default RequestTab;
+export default RequestPanel;
