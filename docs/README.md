@@ -43,6 +43,13 @@ npm run tauri dev
 
 3. Make your changes and publish branch.
 
-4. Open Pull Request against main. Make sure to include a short description of your changes. Make sure your PR title follow's pattern  `[feat|fix]: <short-description>`. For example `feat: dynamo-db-request` or `fix: incorrect-aws-credentials`
+4. Open Pull Request against main. Make sure to include a short description of your changes. Make sure your PR title follow's pattern  `[feat|fix]: <short-description>`. For example `feat: dynamo-db-request` or `fix: incorrect-aws-credentials`.
+
+    Use the following template for your description:
+
+    ```markdown
+    ## Summary
+    Explain your changes.
+    ```
 
 5. Wait for your changes to be approved.
