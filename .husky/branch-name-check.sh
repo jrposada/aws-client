@@ -7,7 +7,7 @@ COLOR_RESET='\033[0m'
 echo "${COLOR_INFO}Checking branch name...${COLOR_RESET}\n"
 
 local_branch_name="$(git rev-parse --abbrev-ref HEAD)"
-valid_regex='^\b(feat|fix)\b/.+$'
+valid_regex='^\b(feat|fix|chore)\b/.+$'
 
 if ! echo "$local_branch_name" | grep -qE "$valid_regex"; then
     echo "${COLOR_ERROR}Error${COLOR_RESET} Branch name does not match pattern: $valid_regex\n"

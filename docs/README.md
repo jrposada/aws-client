@@ -53,3 +53,16 @@ npm run tauri dev
     ```
 
 5. Wait for your changes to be approved.
+
+## AWS Credentials
+
+To test app functionality you will need access to an AWS account. If you do not have one you may request one to be created.
+
+### How to create a User
+
+1. Go to **IAM Identity Center**
+2. Got to **Users** section and select **Add user**
+3. Fill username and click **Next**
+4. Add new user to group **AWSClientDeveloper**
+5. User should receive an email to setup their password and do their first login.
+6. For subsequent access the will need IAM Identity Center's **AWS access portal URL**
