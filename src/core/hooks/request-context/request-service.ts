@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api';
 import { Dispatch, SetStateAction } from 'react';
 import { v4 as uuid } from 'uuid';
 
@@ -122,7 +123,10 @@ class RequestService {
         };
 
         const send: TabData['send'] = () => {
-            console.log('Send', tab.text);
+            // // now we can call our Command!
+            invoke<string>('dynamodb_list', { profileName: 'aws-client-dev' })
+                // `invoke` returns a Promise
+                .then((response) => console.log(response));
         };
 
         tab.setText = setText;
@@ -143,10 +147,3 @@ class RequestService {
 
 export { RequestService };
 export type { RequestType, TabData as TabInfo };
-
-// const [greet, setGreet] = useState('');
-
-// // now we can call our Command!
-// invoke<string>('greet', { name: 'World' })
-// // `invoke` returns a Promise
-// .then((response) => setGreet(response));
