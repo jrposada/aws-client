@@ -68,6 +68,7 @@ version = "0.1.0"
 dependencies = [
  "aws-config",
  "aws-sdk-dynamodb",
+ "aws-sdk-rds",
  "serde",
  "serde_json",
  "tauri",
@@ -188,6 +189,29 @@ dependencies = [
  "aws-types",
  "bytes",
  "fastrand",
+ "http 0.2.12",
+ "once_cell",
+ "regex-lite",
+ "tracing",
+]
+
+[[package]]
+name = "aws-sdk-rds"
+version = "1.40.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42da2328b5c6e67c7dbd65b65bdffd643ef4450ea1979294b22f136ba81b9ca3"
+dependencies = [
+ "aws-credential-types",
+ "aws-runtime",
+ "aws-smithy-async",
+ "aws-smithy-http",
+ "aws-smithy-json",
+ "aws-smithy-query",
+ "aws-smithy-runtime",
+ "aws-smithy-runtime-api",
+ "aws-smithy-types",
+ "aws-smithy-xml",
+ "aws-types",
  "http 0.2.12",
  "once_cell",
  "regex-lite",
