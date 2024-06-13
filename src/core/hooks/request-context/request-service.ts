@@ -1,11 +1,13 @@
-import { invoke } from '@tauri-apps/api';
 import { Dispatch, SetStateAction } from 'react';
 import { v4 as uuid } from 'uuid';
+import { send as dynamodbSend } from '../../commands/dynamodb';
+import { send as rdsSend } from '../../commands/rds';
 
 type RequestType = 'dynamo-db' | 'open-search' | 'rds';
 
 type TabData = {
     id: string;
+    requestType: RequestType;
     send: () => void;
     setText: Dispatch<SetStateAction<string>>;
     text: string;
@@ -20,6 +22,12 @@ type RequestServiceSetters = {
 type RequestServiceStates = {
     currentTab: TabData | undefined;
     tabs: TabData[];
+};
+
+const commands: Record<RequestType, TabData['send']> = {
+    'dynamo-db': dynamodbSend,
+    'open-search': () => {},
+    rds: rdsSend,
 };
 
 class RequestService {
@@ -47,6 +55,7 @@ class RequestService {
             const tab: TabData = {
                 title: type,
                 id,
+                requestType: type,
                 text: type,
                 setText: () => {}, // needs to be hooked below
                 send: () => {}, // needs to be hooked below
@@ -123,10 +132,7 @@ class RequestService {
         };
 
         const send: TabData['send'] = () => {
-            // // now we can call our Command!
-            invoke<string>('dynamodb_list', { profileName: 'aws-client-dev' })
-                // `invoke` returns a Promise
-                .then((response) => console.log(response));
+            commands[tab.requestType]();
         };
 
         tab.setText = setText;
