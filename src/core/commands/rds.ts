@@ -1,10 +1,17 @@
 import { invoke } from '@tauri-apps/api';
+import { SendParams } from './common';
 
-export function send() {
-    invoke<string>('rds_list', {
-        profileName: 'aws-client-dev',
-    })
-        // `invoke` returns a Promise
-        .then((response) => console.log(response))
-        .catch((error) => console.error('RDS error', error));
+export type RdsSendParams = SendParams & {};
+export type RdsSendResult = string;
+
+export async function rdsSend({
+    profileName,
+}: RdsSendParams): Promise<RdsSendResult> {
+    try {
+        return invoke<string>('rds_list', {
+            profileName,
+        });
+    } catch (error) {
+        return `RDS error: ${error}`;
+    }
 }

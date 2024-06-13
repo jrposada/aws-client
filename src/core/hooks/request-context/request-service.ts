@@ -1,14 +1,14 @@
 import { Dispatch, SetStateAction } from 'react';
 import { v4 as uuid } from 'uuid';
-import { send as dynamodbSend } from '../../commands/dynamodb';
-import { send as rdsSend } from '../../commands/rds';
+import { dynamodbSend } from '../../commands/dynamodb';
+import { rdsSend } from '../../commands/rds';
 
 type RequestType = 'dynamo-db' | 'open-search' | 'rds';
 
 type TabData = {
     id: string;
     requestType: RequestType;
-    send: () => void;
+    send: () => Promise<void>;
     setText: Dispatch<SetStateAction<string>>;
     text: string;
     title: string;
@@ -24,7 +24,7 @@ type RequestServiceStates = {
     tabs: TabData[];
 };
 
-const commands: Record<RequestType, TabData['send']> = {
+const commands = {
     'dynamo-db': dynamodbSend,
     'open-search': () => {},
     rds: rdsSend,
@@ -58,7 +58,7 @@ class RequestService {
                 requestType: type,
                 text: type,
                 setText: () => {}, // needs to be hooked below
-                send: () => {}, // needs to be hooked below
+                send: async () => {}, // needs to be hooked below
             };
             this.#hookTab(tab);
 
@@ -131,8 +131,8 @@ class RequestService {
             });
         };
 
-        const send: TabData['send'] = () => {
-            commands[tab.requestType]();
+        const send: TabData['send'] = async () => {
+            await commands[tab.requestType]({ profileName: 'aws-client-dev' });
         };
 
         tab.setText = setText;

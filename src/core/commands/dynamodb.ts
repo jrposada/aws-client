@@ -1,10 +1,17 @@
 import { invoke } from '@tauri-apps/api';
+import { SendParams } from './common';
 
-export function send() {
-    invoke<string>('dynamodb_list', {
-        profileName: 'aws-client-dev',
-    })
-        // `invoke` returns a Promise
-        .then((response) => console.log(response))
-        .catch((error) => console.error('DynamoDB error', error));
+export type DynamodbSendParams = SendParams & {};
+export type DynamodbSendResult = string;
+
+export async function dynamodbSend({
+    profileName,
+}: DynamodbSendParams): Promise<DynamodbSendResult> {
+    try {
+        return await invoke<string>('dynamodb_list', {
+            profileName,
+        });
+    } catch (error) {
+        return `DynamoDB error: ${error}`;
+    }
 }
