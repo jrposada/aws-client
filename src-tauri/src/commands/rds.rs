@@ -1,33 +1,36 @@
-use aws_sdk_rds::Client;
+use aws_sdk_rdsdata::Client;
 
 use crate::services::aws_config::AwsConfig;
 
 #[tauri::command]
-pub async fn rds_list(profile_name: &str) -> Result<String, String> {
+pub async fn rds_execute(
+    cluster_arn: &str,
+    database: &str,
+    profile_name: &str,
+    query: &str,
+    secret_arn: &str,
+) -> Result<String, String> {
+    println!(">>> rds_execute");
+
     let config = AwsConfig::new(profile_name).await;
     let client = Client::new(&config);
 
-    let response_result = client.describe_db_clusters().send().await;
+    let statement = client
+        .execute_statement()
+        .resource_arn(cluster_arn)
+        .database(database)
+        .sql(query)
+        .secret_arn(secret_arn);
 
-    let response = match response_result {
+    let result = statement.send().await;
+
+    let response = match result {
         Ok(response) => response,
         Err(error) => {
             return Err(format!("Error: {}", error));
         }
     };
 
-    println!("Found {} clusters:", response.db_clusters().len());
-
-    for cluster in response.db_clusters() {
-        let name = cluster.database_name().unwrap_or("Unknown");
-        let engine = cluster.engine().unwrap_or("Unknown");
-        let id = cluster.db_cluster_identifier().unwrap_or("Unknown");
-        let class = cluster.db_cluster_instance_class().unwrap_or("Unknown");
-        println!("\tDatabase: {name}");
-        println!("\t  Engine: {engine}");
-        println!("\t      ID: {id}");
-        println!("\tInstance: {class}");
-    }
-
-    Ok(format!("Hello, {}!", profile_name))
+    println!("<<< rds_execute");
+    Ok(format!("{:?}", response))
 }

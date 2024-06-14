@@ -1,22 +1,23 @@
 import { useMemo, useState } from 'react';
 import requestContext from './request-context';
-import { RequestService, TabInfo } from './request-service';
+import { RequestService } from './request-service';
+import { Request } from './request';
 
 export function useCreateRequestContext() {
-    const [currentTab, setCurrentTab] = useState<TabInfo>();
-    const [tabs, setTabs] = useState<TabInfo[]>([]);
+    const [currentRequest, setCurrentRequest] = useState<Request>();
+    const [requests, setRequests] = useState<Request[]>([]);
 
     const requestService = useMemo(() => {
         const service = new RequestService({
-            setCurrentTab,
-            setTabs,
+            setCurrentRequest: setCurrentRequest,
+            setRequests: setRequests,
         });
         service._refresh({
-            currentTab,
-            tabs,
+            currentRequest,
+            requests,
         });
         return service;
-    }, [currentTab, tabs]);
+    }, [currentRequest, requests]);
 
     return { requestContext, requestService };
 }

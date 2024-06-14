@@ -2,26 +2,16 @@ import { Dispatch, SetStateAction } from 'react';
 import { v4 as uuid } from 'uuid';
 import { dynamodbSend } from '../../commands/dynamodb';
 import { rdsSend } from '../../commands/rds';
-
-type RequestType = 'dynamo-db' | 'open-search' | 'rds';
-
-type TabData = {
-    id: string;
-    requestType: RequestType;
-    send: () => Promise<void>;
-    setText: Dispatch<SetStateAction<string>>;
-    text: string;
-    title: string;
-};
+import { Request, RequestType } from './request';
 
 type RequestServiceSetters = {
-    setCurrentTab: Dispatch<SetStateAction<TabData | undefined>>;
-    setTabs: Dispatch<SetStateAction<TabData[]>>;
+    setCurrentRequest: Dispatch<SetStateAction<Request | undefined>>;
+    setRequests: Dispatch<SetStateAction<Request[]>>;
 };
 
 type RequestServiceStates = {
-    currentTab: TabData | undefined;
-    tabs: TabData[];
+    currentRequest: Request | undefined;
+    requests: Request[];
 };
 
 const commands = {
@@ -31,125 +21,129 @@ const commands = {
 };
 
 class RequestService {
-    get currentTab(): TabData | undefined {
-        return this.#currentTab;
+    get currentRequest(): Request | undefined {
+        return this.#currentRequest;
     }
 
-    get currentTabIndex(): number | undefined {
-        return this.#tabs.findIndex((tab) => tab.id === this.#currentTab?.id);
+    get currentRequestIndex(): number | undefined {
+        return this.#requests.findIndex(
+            (request) => request.id === this.#currentRequest?.id,
+        );
     }
 
-    get tabs() {
-        return this.#tabs;
+    get requests() {
+        return this.#requests;
     }
 
-    #currentTab: TabData | undefined;
-    #tabs: TabData[] = [];
+    #currentRequest: Request | undefined;
+    #requests: Request[] = [];
 
     constructor(private _setters: RequestServiceSetters) {}
 
-    addTab(type: RequestType): void {
-        this._setters.setTabs((prev) => {
+    addRequest(type: RequestType): void {
+        this._setters.setRequests((prev) => {
             const id = uuid();
 
-            const tab: TabData = {
-                title: type,
+            const request: Request = {
+                data: { profileName: 'default' },
                 id,
                 requestType: type,
-                text: type,
-                setText: () => {}, // needs to be hooked below
                 send: async () => {}, // needs to be hooked below
+                setData: () => {}, // needs to be hooked below
+                title: type,
             };
-            this.#hookTab(tab);
+            this.#hookRequest(request);
 
-            const next = [...prev, tab];
-            this._setters.setCurrentTab(tab);
+            const next = [...prev, request];
+            this._setters.setCurrentRequest(request);
             return next;
         });
     }
 
-    removeTab(indexString: string | undefined) {
+    removeRequest(indexString: string | undefined) {
         const index = Number(indexString);
         if (!indexString || isNaN(index)) {
             console.error(
-                `Error removing tab with index "${indexString}". Invalid index`,
+                `Error removing request with index "${indexString}". Invalid index`,
             );
             return;
         }
 
-        this._setters.setTabs((prev) => {
+        this._setters.setRequests((prev) => {
             if (index < 0 || index > prev.length) {
                 console.error(
-                    `Error removing tab with index "${indexString}". Index out of bounds`,
+                    `Error removing request with index "${indexString}". Index out of bounds`,
                 );
                 return prev;
             }
 
             const next = [...prev.slice(0, index), ...prev.slice(index + 1)];
 
-            if (this.currentTabIndex ?? index >= next.length) {
-                this._setters.setCurrentTab(next[next.length - 1]);
+            if (this.currentRequestIndex ?? index >= next.length) {
+                this._setters.setCurrentRequest(next[next.length - 1]);
             }
 
             return next;
         });
     }
 
-    setCurrentTabByIndex(index: number): void {
-        this._setters.setCurrentTab(this.tabs[index]);
+    setCurrentRequestByIndex(index: number): void {
+        this._setters.setCurrentRequest(this.requests[index]);
     }
 
     _refresh(states: RequestServiceStates): void {
-        this.#currentTab = states.currentTab;
-        this.#tabs = states.tabs;
+        this.#currentRequest = states.currentRequest;
+        this.#requests = states.requests;
 
-        if (this.#currentTab) {
-            this.#hookTab(this.#currentTab);
+        if (this.#currentRequest) {
+            this.#hookRequest(this.#currentRequest);
         }
 
-        this.#tabs.forEach((tab) => {
-            this.#hookTab(tab);
+        this.#requests.forEach((request) => {
+            this.#hookRequest(request);
         });
     }
 
-    #hookTab(tab: TabData) {
-        const setText: TabData['setText'] = (setter) => {
-            const tabIndex = this.#tabs.findIndex((item) => item.id === tab.id);
+    #hookRequest(request: Request) {
+        const setData: Request['setData'] = (setter) => {
+            const requestIndex = this.#requests.findIndex(
+                (item) => item.id === request.id,
+            );
 
-            if (tabIndex < 0) {
-                throw new Error(`Tab with id "${tab.id}" not found`);
+            if (requestIndex < 0) {
+                throw new Error(`Request with id "${request.id}" not found`);
             }
 
             const value =
                 typeof setter !== 'function'
                     ? setter
-                    : setter(this.#tabs[tabIndex].text);
+                    : setter(this.#requests[requestIndex].data);
 
-            this.#updateTabAtIndex(tabIndex, {
-                ...this.#tabs[tabIndex],
-                text: value,
+            this.#updateRequestAtIndex(requestIndex, {
+                ...this.#requests[requestIndex],
+                data: value,
             });
         };
 
-        const send: TabData['send'] = async () => {
-            await commands[tab.requestType]({ profileName: 'aws-client-dev' });
+        const send: Request['send'] = async () => {
+            return await commands[request.requestType](request.data as any);
         };
 
-        tab.setText = setText;
-        tab.send = send;
+        request.setData = setData;
+        request.send = send;
     }
 
-    #updateTabAtIndex(index: number, tab: TabData) {
-        if (this.#currentTab?.id === tab.id) {
-            this._setters.setCurrentTab(tab);
+    #updateRequestAtIndex(index: number, request: Request) {
+        if (this.#currentRequest?.id === request.id) {
+            this._setters.setCurrentRequest(request);
         }
-        this._setters.setTabs((prev) => {
+        this._setters.setRequests((prev) => {
             const next = [...prev];
-            next[index] = tab;
+            next[index] = request;
             return next;
         });
     }
 }
 
 export { RequestService };
-export type { RequestType, TabData as TabInfo };
+export type { Request, RequestType };

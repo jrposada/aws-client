@@ -21,17 +21,17 @@ const NewButton: FunctionComponent = () => {
     };
 
     const handleDynamoDb: MouseEventHandler<HTMLLIElement> = () => {
-        requestService.addTab('dynamo-db');
+        requestService.addRequest('dynamo-db');
         handleClose();
     };
 
     const handleRds: MouseEventHandler<HTMLLIElement> = () => {
-        requestService.addTab('rds');
+        requestService.addRequest('rds');
         handleClose();
     };
 
     const handleOpenSearch: MouseEventHandler<HTMLLIElement> = () => {
-        requestService.addTab('open-search');
+        requestService.addRequest('open-search');
         handleClose();
     };
 

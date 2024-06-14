@@ -1,19 +1,17 @@
-import { Box, Button } from '@mui/material';
+import { Box } from '@mui/material';
 import { FunctionComponent, MouseEventHandler } from 'react';
-import { TabInfo } from '../../core/hooks/request-context/request-service';
+import { Request } from '../../core/hooks/request-context/request-service';
 import ResponseViewport from '../response-viewport/response-viewport';
-import TextEditor, { TextEditorProps } from '../text-editor/text-editor';
+import RdsOptions from './rds-panel/rds-options';
+import { RdsRequest } from '../../core/commands/rds';
 
 type RequestPanelProps = {
-    data: TabInfo;
+    request: Request;
 };
 
-const RequestPanel: FunctionComponent<RequestPanelProps> = ({ data }) => {
-    const handleValueChange: TextEditorProps['onChange'] = (next) => {
-        data.setText(next);
-    };
+const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
     const handleSend: MouseEventHandler<HTMLButtonElement> = () => {
-        data.send();
+        request.send().then((response) => console.log(response));
     };
 
     return (
@@ -28,18 +26,14 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ data }) => {
                     py: 1,
                 }}
             >
-                <Box sx={{ display: 'flex' }}>
-                    <Button
-                        variant="contained"
-                        onClick={handleSend}
-                        sx={{
-                            ml: 'auto',
-                        }}
-                    >
-                        Send
-                    </Button>
-                </Box>
-                <TextEditor value={data.text} onChange={handleValueChange} />
+                {request.requestType === 'rds' ? (
+                    <RdsOptions
+                        request={request as unknown as RdsRequest}
+                        onSend={handleSend}
+                    />
+                ) : (
+                    <span>TODO</span>
+                )}
                 <ResponseViewport />
             </Box>
         </>
