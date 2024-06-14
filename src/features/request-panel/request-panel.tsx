@@ -1,17 +1,24 @@
 import { Box } from '@mui/material';
-import { FunctionComponent, MouseEventHandler } from 'react';
+import { FunctionComponent, MouseEventHandler, useState } from 'react';
+import { RdsRequest, RdsSendResult } from '../../core/commands/rds';
 import { Request } from '../../core/hooks/request-context/request-service';
-import ResponseViewport from '../response-viewport/response-viewport';
-import RdsOptions from './rds-panel/rds-options';
-import { RdsRequest } from '../../core/commands/rds';
+import RdsPanel from './rds-panel/rds-panel';
 
 type RequestPanelProps = {
     request: Request;
 };
 
 const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
+    const [result, setResult] = useState<unknown>();
     const handleSend: MouseEventHandler<HTMLButtonElement> = () => {
-        request.send().then((response) => console.log(response));
+        request
+            .send()
+            .then((response) => {
+                setResult(response);
+            })
+            .catch((error) => {
+                setResult(error);
+            });
     };
 
     return (
@@ -27,14 +34,14 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
                 }}
             >
                 {request.requestType === 'rds' ? (
-                    <RdsOptions
-                        request={request as unknown as RdsRequest}
+                    <RdsPanel
                         onSend={handleSend}
+                        request={request as unknown as RdsRequest}
+                        result={result as RdsSendResult}
                     />
                 ) : (
                     <span>TODO</span>
                 )}
-                <ResponseViewport />
             </Box>
         </>
     );

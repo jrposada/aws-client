@@ -1,21 +1,24 @@
-import { Box, Button, TextField, Toolbar } from '@mui/material';
+import { Button, TextField, Toolbar } from '@mui/material';
+import { t } from 'i18next';
 import {
     ChangeEventHandler,
     FunctionComponent,
     MouseEventHandler,
 } from 'react';
-import { RdsRequest } from '../../../core/commands/rds';
+import { RdsRequest, RdsSendResult } from '../../../core/commands/rds';
+import ResponseViewport from '../../response-viewport/response-viewport';
 import TextEditor, { TextEditorProps } from '../../text-editor/text-editor';
-import { t } from 'i18next';
 
-type RdsOptionsProps = {
-    request: RdsRequest;
+type RdsPanelProps = {
     onSend: MouseEventHandler<HTMLButtonElement>;
+    request: RdsRequest;
+    result: RdsSendResult | undefined;
 };
 
-const RdsOptions: FunctionComponent<RdsOptionsProps> = ({
-    request,
+const RdsPanel: FunctionComponent<RdsPanelProps> = ({
     onSend,
+    request,
+    result,
 }) => {
     const handleClusterArnChange: ChangeEventHandler<HTMLInputElement> = (
         event,
@@ -116,15 +119,12 @@ const RdsOptions: FunctionComponent<RdsOptionsProps> = ({
                 value={request.data.query ?? ''}
                 onChange={handleQueryChange}
             />
+            <ResponseViewport>
+                {!!result && <span>{result}</span>}
+            </ResponseViewport>
         </>
     );
 };
 
-export default RdsOptions;
-export type { RdsOptionsProps };
-// database: 'scon',
-// clusterArn:
-//     'arn:aws:rds:us-east-1:220162591379:cluster:scon-test-supply-connections-db-cluster',
-// profileName: 'dsco',
-// secretArn:
-//     'arn:aws:secretsmanager:us-east-1:220162591379:secret:scon-supply-connections-db-test-readonly-password-secret-zuWRhJ',
+export default RdsPanel;
+export type { RdsPanelProps as RdsOptionsProps };

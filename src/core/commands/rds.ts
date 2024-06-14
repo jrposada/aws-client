@@ -13,7 +13,8 @@ export type RdsRequest = Request<RdsSendParams, RdsSendResult>;
 
 export async function rdsSend(params: RdsSendParams): Promise<RdsSendResult> {
     try {
-        return invoke<string>('rds_execute', params);
+        const response = await invoke<string>('rds_execute', params);
+        return JSON.parse(response);
     } catch (error) {
         return `RDS error: ${error}`;
     }
