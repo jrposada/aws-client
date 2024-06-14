@@ -2,6 +2,10 @@
   "translation": {
     "navigation.aurora-db": "Aurora DB",
     "navigation.dynamo-db": "Dynamo DB",
+    "rds-request.cluster-arn": "Cluster ARN",
+    "rds-request.database": "Database",
+    "rds-request.profile-name": "Profile Name",
+    "rds-request.secret-arn": "Secret ARN",
     "side-menu.calculator": "Calculator"
   }
 }
