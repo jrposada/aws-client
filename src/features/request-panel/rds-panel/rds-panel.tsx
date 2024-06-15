@@ -120,7 +120,7 @@ const RdsPanel: FunctionComponent<RdsPanelProps> = ({
                 onChange={handleQueryChange}
             />
             <ResponseViewport>
-                {!!result && <span>{result}</span>}
+                {!!result && <span>{JSON.stringify(result)}</span>}
             </ResponseViewport>
         </>
     );

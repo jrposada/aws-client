@@ -45,7 +45,15 @@ class RequestService {
             const id = uuid();
 
             const request: Request = {
-                data: { profileName: 'default' },
+                data: {
+                    profileName: 'default',
+                    database: 'scon',
+                    secretArn:
+                        'arn:aws:secretsmanager:us-east-1:220162591379:secret:scon-supply-connections-db-test-readonly-password-secret-zuWRhJ',
+                    clusterArn:
+                        'arn:aws:rds:us-east-1:220162591379:cluster:scon-test-supply-connections-db-cluster',
+                    query: 'select * from connection_task_template limit 1',
+                } as any,
                 id,
                 requestType: type,
                 send: async () => {}, // needs to be hooked below

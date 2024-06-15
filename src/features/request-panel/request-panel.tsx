@@ -4,20 +4,25 @@ import { RdsRequest, RdsSendResult } from '../../core/commands/rds';
 import { Request } from '../../core/hooks/request-context/request-service';
 import RdsPanel from './rds-panel/rds-panel';
 
+type Result = {
+    success: boolean;
+    data: unknown;
+};
+
 type RequestPanelProps = {
     request: Request;
 };
 
 const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
-    const [result, setResult] = useState<unknown>();
+    const [result, setResult] = useState<Result>();
     const handleSend: MouseEventHandler<HTMLButtonElement> = () => {
         request
             .send()
             .then((response) => {
-                setResult(response);
+                setResult({ success: true, data: response });
             })
             .catch((error) => {
-                setResult(error);
+                setResult({ success: false, data: error });
             });
     };
 
@@ -37,7 +42,7 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
                     <RdsPanel
                         onSend={handleSend}
                         request={request as unknown as RdsRequest}
-                        result={result as RdsSendResult}
+                        result={result as RdsSendResult | undefined}
                     />
                 ) : (
                     <span>TODO</span>
