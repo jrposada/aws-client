@@ -1,8 +1,7 @@
 import { Box, Button, Toolbar } from '@mui/material';
 import { t } from 'i18next';
-import { FunctionComponent, MouseEventHandler, useState } from 'react';
-import { Result } from '../../../core/commands/common';
-import { RdsRequest, RdsSendResult } from '../../../core/commands/rds';
+import { FunctionComponent, MouseEventHandler } from 'react';
+import { RdsRequest } from '../../../core/commands/rds';
 import { Request } from '../../../core/hooks/request-context/request-service';
 import { useRequestService } from '../../../core/hooks/request-context/use-request-service';
 import RdsPanel from '../../rds/rds-panel/rds-panel';
@@ -14,8 +13,6 @@ type RequestPanelProps = {
 const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
     const requestService = useRequestService();
 
-    const [result, setResult] = useState<Result>();
-
     const handleSave: MouseEventHandler<HTMLButtonElement> = () => {
         console.log('TODO save tab');
         // requestService
@@ -24,14 +21,7 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
         //     .catch(() => console.log('error'));
     };
     const handleSend: MouseEventHandler<HTMLButtonElement> = () => {
-        request
-            .send()
-            .then((response) => {
-                setResult({ success: true, data: response });
-            })
-            .catch((error) => {
-                setResult({ success: false, data: error });
-            });
+        request.send();
     };
 
     return (
@@ -64,7 +54,6 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
                     <RdsPanel
                         onSend={handleSend}
                         request={request as unknown as RdsRequest}
-                        result={result as Result<RdsSendResult> | undefined}
                     />
                 ) : (
                     <span>TODO</span>

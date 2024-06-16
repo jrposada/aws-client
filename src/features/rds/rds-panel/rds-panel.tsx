@@ -5,25 +5,19 @@ import {
     FunctionComponent,
     MouseEventHandler,
 } from 'react';
-import { RdsRequest, RdsSendResult } from '../../../core/commands/rds';
+import { RdsRequest } from '../../../core/commands/rds';
 import ResponseViewport from '../../home/response-viewport/response-viewport';
 import TextEditor, {
     TextEditorProps,
 } from '../../home/text-editor/text-editor';
 import RdsResult from '../rds-result/rds-result';
-import { Result } from '../../../core/commands/common';
 
 type RdsPanelProps = {
     onSend: MouseEventHandler<HTMLButtonElement>;
     request: RdsRequest;
-    result: Result<RdsSendResult> | undefined;
 };
 
-const RdsPanel: FunctionComponent<RdsPanelProps> = ({
-    onSend,
-    request,
-    result,
-}) => {
+const RdsPanel: FunctionComponent<RdsPanelProps> = ({ onSend, request }) => {
     const handleClusterArnChange: ChangeEventHandler<HTMLInputElement> = (
         event,
     ) => {
@@ -124,7 +118,9 @@ const RdsPanel: FunctionComponent<RdsPanelProps> = ({
                 onChange={handleQueryChange}
             />
             <ResponseViewport>
-                {!!result && <RdsResult data={result} />}
+                {!!request.result?.success && (
+                    <RdsResult data={request.result} />
+                )}
             </ResponseViewport>
         </>
     );

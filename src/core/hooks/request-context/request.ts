@@ -1,9 +1,14 @@
 import { Dispatch, SetStateAction } from 'react';
 
-export type RequestType = 'dynamo-db' | 'open-search' | 'rds';
+export type RequestType = 'rds';
 
 export type RequestData = {
     profileName: string;
+};
+
+export type RequestResult<TData = unknown> = {
+    success: boolean;
+    data?: TData; // TODO use conditional type
 };
 
 export type Request<
@@ -13,7 +18,8 @@ export type Request<
     data: TData;
     id: string;
     requestType: RequestType;
-    send: () => Promise<TResult>;
+    result?: RequestResult<TResult>;
+    send: () => Promise<void>;
     setData: Dispatch<SetStateAction<TData>>;
     title: string;
 };
