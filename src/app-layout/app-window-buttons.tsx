@@ -9,6 +9,7 @@ import { FunctionComponent, MouseEventHandler, useState } from 'react';
 import AppWindowButton, {
     AppWindowButtonProps,
 } from './styled/app-window-button';
+import { useRequestService } from '../core/hooks/request-context/use-request-service';
 
 const buttonProps: Partial<AppWindowButtonProps> = {
     color: 'inherit',
@@ -19,6 +20,8 @@ const iconProps: DefaultComponentProps<SvgIconTypeMap<{}, 'svg'>> = {
 };
 
 const AppWindowButtons: FunctionComponent = () => {
+    const requestService = useRequestService();
+
     const [isMaximized, setIsMaximized] = useState(false);
     const handleMinimize = () => {
         appWindow.minimize();
@@ -35,7 +38,9 @@ const AppWindowButtons: FunctionComponent = () => {
     };
 
     const handleClose: MouseEventHandler = () => {
-        appWindow.close();
+        requestService.save().finally(() => {
+            appWindow.close();
+        });
     };
     return (
         <div

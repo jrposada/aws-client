@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { dynamodbSend } from '../../commands/dynamodb';
 import { rdsSend } from '../../commands/rds';
 import { Request, RequestType } from './request';
+import { invoke } from '@tauri-apps/api';
 
 type RequestServiceSetters = {
     setCurrentRequest: Dispatch<SetStateAction<Request | undefined>>;
@@ -64,7 +65,17 @@ class RequestService {
 
             const next = [...prev, request];
             this._setters.setCurrentRequest(request);
+
             return next;
+        });
+    }
+
+    async load(): Promise<void> {
+        return invoke<string>('load_app_state').then((stateStr) => {
+            const state = JSON.parse(stateStr);
+
+            this._setters.setCurrentRequest(state.currentRequest);
+            this._setters.setRequests(state.requests ?? []);
         });
     }
 
@@ -92,6 +103,15 @@ class RequestService {
             }
 
             return next;
+        });
+    }
+
+    async save(): Promise<string> {
+        return invoke<string>('save_app_state', {
+            state: JSON.stringify({
+                currentRequest: this.#currentRequest,
+                requests: this.#requests,
+            }),
         });
     }
 

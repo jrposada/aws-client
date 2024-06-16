@@ -7,6 +7,7 @@
     "rds-request.profile-name": "Profile Name",
     "rds-request.secret-arn": "Secret ARN",
     "response-viewport.placeholder": "No result",
+    "save": "Save",
     "side-menu.calculator": "Calculator"
   }
 }
