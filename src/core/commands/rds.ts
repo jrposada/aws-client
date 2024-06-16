@@ -8,15 +8,11 @@ export type RdsSendParams = SendParams & {
     query: string;
     secretArn: string;
 };
-export type RdsSendResult = string;
+export type RdsSendResult = Record<string, string>[];
 export type RdsRequest = Request<RdsSendParams, RdsSendResult>;
 
 export async function rdsSend(params: RdsSendParams): Promise<RdsSendResult> {
-    try {
-        const response = await invoke<string>('rds_execute', params);
-        console.log(response);
-        return JSON.parse(response);
-    } catch (error) {
-        return `RDS error: ${error}`;
-    }
+    const response = await invoke<string>('rds_execute', params);
+    console.log(response);
+    return JSON.parse(response);
 }

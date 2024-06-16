@@ -1,13 +1,9 @@
 import { Box } from '@mui/material';
 import { FunctionComponent, MouseEventHandler, useState } from 'react';
-import { RdsRequest, RdsSendResult } from '../../core/commands/rds';
-import { Request } from '../../core/hooks/request-context/request-service';
-import RdsPanel from './rds-panel/rds-panel';
-
-type Result = {
-    success: boolean;
-    data: unknown;
-};
+import { Result } from '../../../core/commands/common';
+import { RdsRequest, RdsSendResult } from '../../../core/commands/rds';
+import { Request } from '../../../core/hooks/request-context/request-service';
+import RdsPanel from '../../rds/rds-panel/rds-panel';
 
 type RequestPanelProps = {
     request: Request;
@@ -42,7 +38,7 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
                     <RdsPanel
                         onSend={handleSend}
                         request={request as unknown as RdsRequest}
-                        result={result as RdsSendResult | undefined}
+                        result={result as Result<RdsSendResult> | undefined}
                     />
                 ) : (
                     <span>TODO</span>

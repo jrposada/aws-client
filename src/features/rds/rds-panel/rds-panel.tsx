@@ -6,13 +6,17 @@ import {
     MouseEventHandler,
 } from 'react';
 import { RdsRequest, RdsSendResult } from '../../../core/commands/rds';
-import ResponseViewport from '../../response-viewport/response-viewport';
-import TextEditor, { TextEditorProps } from '../../text-editor/text-editor';
+import ResponseViewport from '../../home/response-viewport/response-viewport';
+import TextEditor, {
+    TextEditorProps,
+} from '../../home/text-editor/text-editor';
+import RdsResult from '../rds-result/rds-result';
+import { Result } from '../../../core/commands/common';
 
 type RdsPanelProps = {
     onSend: MouseEventHandler<HTMLButtonElement>;
     request: RdsRequest;
-    result: RdsSendResult | undefined;
+    result: Result<RdsSendResult> | undefined;
 };
 
 const RdsPanel: FunctionComponent<RdsPanelProps> = ({
@@ -120,7 +124,7 @@ const RdsPanel: FunctionComponent<RdsPanelProps> = ({
                 onChange={handleQueryChange}
             />
             <ResponseViewport>
-                {!!result && <span>{JSON.stringify(result)}</span>}
+                {!!result && <RdsResult data={result} />}
             </ResponseViewport>
         </>
     );

@@ -1,5 +1,5 @@
 import { FunctionComponent, PropsWithChildren } from 'react';
-import ResizableHeightBox from '../../ui/resizable-box';
+import ResizableHeightBox from '../../../ui/resizable-box';
 import { t } from 'i18next';
 
 const ResponseViewport: FunctionComponent<PropsWithChildren> = ({

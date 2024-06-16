@@ -1,7 +1,7 @@
 import { Box, Tabs, TabsProps } from '@mui/material';
 import { FunctionComponent } from 'react';
 import { useRequestService } from '../../core/hooks/request-context/use-request-service';
-import RequestPanel from '../request-panel/request-panel';
+import RequestPanel from './request-panel/request-panel';
 import ClosableTab, {
     ClosableTabProps,
 } from '../../ui/closable-tab/closable-tab';
