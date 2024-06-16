@@ -21,6 +21,7 @@ tauri = { version = "1.6.5", features = [ "window-show", "window-maximize", "win
 aws-config = "1.5.1"
 aws-sdk-dynamodb = "1.33.0"
 tokio = { version = "1.38.0", features = ["full"] }
+aws-sdk-rdsdata = "1.31.0"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem and the built-in dev server is disabled.

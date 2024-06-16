@@ -1,7 +1,7 @@
 import { Box, Tabs, TabsProps } from '@mui/material';
 import { FunctionComponent } from 'react';
 import { useRequestService } from '../../core/hooks/request-context/use-request-service';
-import RequestPanel from '../request-panel/request-panel';
+import RequestPanel from './request-panel/request-panel';
 import ClosableTab, {
     ClosableTabProps,
 } from '../../ui/closable-tab/closable-tab';
@@ -17,11 +17,11 @@ const HomeRoute: FunctionComponent = () => {
     const requestService = useRequestService();
 
     const handleChange: TabsProps['onChange'] = (_, nextValue: number) => {
-        requestService.setCurrentTabByIndex(nextValue);
+        requestService.setCurrentRequestByIndex(nextValue);
     };
 
     const handleClose: ClosableTabProps['onClose'] = (index) => {
-        requestService.removeTab(index);
+        requestService.removeRequest(index);
     };
 
     return (
@@ -36,14 +36,14 @@ const HomeRoute: FunctionComponent = () => {
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                 <Tabs
                     onChange={handleChange}
-                    value={requestService.currentTabIndex}
+                    value={requestService.currentRequestIndex}
                     scrollButtons="auto"
                     variant="scrollable"
                     sx={{
                         ...sxHeight,
                     }}
                 >
-                    {requestService.tabs.map(({ title, id }, index) => (
+                    {requestService.requests.map(({ title, id }, index) => (
                         <ClosableTab
                             label={title}
                             key={id}
@@ -59,8 +59,8 @@ const HomeRoute: FunctionComponent = () => {
                     ))}
                 </Tabs>
             </Box>
-            {!!requestService.currentTab && (
-                <RequestPanel data={requestService.currentTab} />
+            {!!requestService.currentRequest && (
+                <RequestPanel request={requestService.currentRequest} />
             )}
         </Box>
     );

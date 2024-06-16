@@ -4,18 +4,12 @@
 mod commands;
 mod services;
 
-use commands::dynamodb::list;
+use commands::dynamodb::dynamodb_list;
+use commands::rds::rds_execute;
 
 fn main() {
-    tauri::Builder
-        ::default()
-        .invoke_handler(tauri::generate_handler![dynamodb_list])
+    tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![dynamodb_list, rds_execute])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-#[tauri::command]
-async fn dynamodb_list(profile_name: &str) -> Result<String, ()> {
-    let _ = list(profile_name).await;
-    Ok(format!("Hello, {}!", profile_name))
 }

@@ -1,13 +1,15 @@
-use aws_config::BehaviorVersion;
 use aws_config::meta::region::RegionProviderChain;
 use aws_config::profile::ProfileFileCredentialsProvider;
 use aws_config::profile::ProfileFileRegionProvider;
+use aws_config::BehaviorVersion;
 use aws_config::SdkConfig;
 
 pub struct AwsConfig {}
 
 impl AwsConfig {
     pub async fn new(profile_name: &str) -> SdkConfig {
+        println!(">>> AwsConfig.new");
+
         // Specify the profile to use
         let credentials_provider = ProfileFileCredentialsProvider::builder()
             .profile_name(profile_name)
@@ -19,12 +21,13 @@ impl AwsConfig {
             .or_default_provider()
             .or_else("us-east-1");
 
-        let config = aws_config
-            ::defaults(BehaviorVersion::latest())
+        let config = aws_config::defaults(BehaviorVersion::latest())
             .credentials_provider(credentials_provider)
             .region(region_provider)
-            .load().await;
+            .load()
+            .await;
 
+        println!("<<< AwsConfig.new");
         return config;
     }
 }

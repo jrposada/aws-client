@@ -7,7 +7,7 @@ const App: FunctionComponent = () => {
 
     return (
         <requestContext.Provider value={requestService}>
-            <AppLayout />;
+            <AppLayout />
         </requestContext.Provider>
     );
 };
