@@ -2,28 +2,30 @@ import { useEffect, useMemo, useState } from 'react';
 import requestContext from './request-context';
 import { RequestService } from './request-service';
 import { Request } from './request';
-import { invoke } from '@tauri-apps/api';
 
 export function useCreateRequestContext() {
     const [currentRequest, setCurrentRequest] = useState<Request>();
     const [requests, setRequests] = useState<Request[]>([]);
+    const [save, setSave] = useState(false);
 
     const requestService = useMemo(() => {
         const service = new RequestService({
             setCurrentRequest,
             setRequests,
         });
-        service._refresh({
-            currentRequest,
-            requests,
-        });
+        service._refresh(
+            {
+                currentRequest,
+                requests,
+            },
+            save,
+        );
         return service;
-    }, [currentRequest, requests]);
+    }, [currentRequest, requests, save]);
 
+    /** Load app state on start up */
     useEffect(() => {
-        invoke<string>('load_app_state').then((stateStr) => {
-            setRequests(JSON.parse(stateStr));
-        });
+        requestService.load().then(() => setSave(true));
     }, []);
 
     return { requestContext, requestService };

@@ -65,7 +65,17 @@ class RequestService {
 
             const next = [...prev, request];
             this._setters.setCurrentRequest(request);
+
             return next;
+        });
+    }
+
+    async load(): Promise<void> {
+        return invoke<string>('load_app_state').then((stateStr) => {
+            const state = JSON.parse(stateStr);
+
+            this._setters.setCurrentRequest(state.currentRequest);
+            this._setters.setRequests(state.requests ?? []);
         });
     }
 
@@ -96,9 +106,12 @@ class RequestService {
         });
     }
 
-    save(): Promise<string> {
+    async save(): Promise<string> {
         return invoke<string>('save_app_state', {
-            state: JSON.stringify(this.#requests),
+            state: JSON.stringify({
+                currentRequest: this.#currentRequest,
+                requests: this.#requests,
+            }),
         });
     }
 
@@ -106,7 +119,7 @@ class RequestService {
         this._setters.setCurrentRequest(this.requests[index]);
     }
 
-    _refresh(states: RequestServiceStates): void {
+    _refresh(states: RequestServiceStates, save: boolean): void {
         this.#currentRequest = states.currentRequest;
         this.#requests = states.requests;
 
@@ -117,6 +130,10 @@ class RequestService {
         this.#requests.forEach((request) => {
             this.#hookRequest(request);
         });
+
+        if (save) {
+            this.save();
+        }
     }
 
     #hookRequest(request: Request) {

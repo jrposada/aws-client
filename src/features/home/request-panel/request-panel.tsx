@@ -17,10 +17,11 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
     const [result, setResult] = useState<Result>();
 
     const handleSave: MouseEventHandler<HTMLButtonElement> = () => {
-        requestService
-            .save()
-            .then(() => console.log('save'))
-            .catch(() => console.log('error'));
+        console.log('TODO save tab');
+        // requestService
+        //     .save()
+        //     .then(() => console.log('save'))
+        //     .catch(() => console.log('error'));
     };
     const handleSend: MouseEventHandler<HTMLButtonElement> = () => {
         request

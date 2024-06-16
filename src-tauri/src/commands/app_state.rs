@@ -26,7 +26,7 @@ pub fn load_app_state(app_handle: AppHandle) -> Result<String, String> {
     let file_path = app_data_dir.join("app_state.json");
 
     if !file_path.exists() {
-        return Ok("[]".into()); // Return an empty JSON object if the state file does not exist
+        return Ok("{}".into()); // Return an empty JSON object if the state file does not exist
     }
 
     let mut file = File::open(file_path).map_err(|e| e.to_string())?;
