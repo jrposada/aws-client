@@ -3,8 +3,7 @@ import requestContext from './request-context';
 import { RequestService } from './request-service';
 import { Request } from './request';
 
-const intervalMs = 5000; // 5 minutes
-// const intervalMs = 1000 * 60 * 5; // 5 minutes
+const intervalMs = 1000 * 60 * 5; // 5 minutes
 
 export function useCreateRequestContext() {
     const [currentRequest, setCurrentRequest] = useState<Request>();
