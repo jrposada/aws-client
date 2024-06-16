@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import requestContext from './request-context';
 import { RequestService } from './request-service';
 import { Request } from './request';
+import { invoke } from '@tauri-apps/api';
 
 export function useCreateRequestContext() {
     const [currentRequest, setCurrentRequest] = useState<Request>();
@@ -18,6 +19,12 @@ export function useCreateRequestContext() {
         });
         return service;
     }, [currentRequest, requests]);
+
+    useEffect(() => {
+        invoke<string>('load_app_state').then((stateStr) => {
+            setRequests(JSON.parse(stateStr));
+        });
+    }, []);
 
     return { requestContext, requestService };
 }
