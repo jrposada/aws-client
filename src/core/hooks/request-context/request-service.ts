@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { dynamodbSend } from '../../commands/dynamodb';
 import { rdsSend } from '../../commands/rds';
 import { Request, RequestType } from './request';
+import { invoke } from '@tauri-apps/api';
 
 type RequestServiceSetters = {
     setCurrentRequest: Dispatch<SetStateAction<Request | undefined>>;
@@ -92,6 +93,12 @@ class RequestService {
             }
 
             return next;
+        });
+    }
+
+    save(): Promise<string> {
+        return invoke<string>('save_app_state', {
+            state: JSON.stringify(this.#requests),
         });
     }
 
