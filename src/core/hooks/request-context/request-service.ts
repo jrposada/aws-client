@@ -1,8 +1,7 @@
 import { Dispatch, SetStateAction } from 'react';
 import { v4 as uuid } from 'uuid';
-import { dynamodbSend } from '../../commands/dynamodb';
 import { rdsSend } from '../../commands/rds';
-import { Request, RequestType } from './request';
+import { Request, RequestResult, RequestType } from './request';
 import { invoke } from '@tauri-apps/api';
 
 type RequestServiceSetters = {
@@ -16,8 +15,6 @@ type RequestServiceStates = {
 };
 
 const commands = {
-    'dynamo-db': dynamodbSend,
-    'open-search': () => {},
     rds: rdsSend,
 };
 
@@ -154,7 +151,22 @@ class RequestService {
         };
 
         const send: Request['send'] = async () => {
-            return await commands[request.requestType](request.data as any);
+            const result = (await commands[request.requestType](
+                request.data as any,
+            )) as RequestResult;
+
+            const requestIndex = this.#requests.findIndex(
+                (item) => item.id === request.id,
+            );
+
+            if (requestIndex < 0) {
+                throw new Error(`Request with id "${request.id}" not found`);
+            }
+
+            this.#updateRequestAtIndex(requestIndex, {
+                ...this.#requests[requestIndex],
+                result,
+            });
         };
 
         request.setData = setData;

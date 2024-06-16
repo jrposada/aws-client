@@ -1,8 +1,11 @@
 import { invoke } from '@tauri-apps/api';
-import { SendParams } from './common';
-import { Request } from '../hooks/request-context/request';
+import {
+    Request,
+    RequestData,
+    RequestResult,
+} from '../hooks/request-context/request';
 
-export type RdsSendParams = SendParams & {
+export type RdsSendParams = RequestData & {
     clusterArn: string;
     database: string;
     query: string;
@@ -11,7 +14,16 @@ export type RdsSendParams = SendParams & {
 export type RdsSendResult = Record<string, string>[];
 export type RdsRequest = Request<RdsSendParams, RdsSendResult>;
 
-export async function rdsSend(params: RdsSendParams): Promise<RdsSendResult> {
-    const response = await invoke<string>('rds_execute', params);
-    return JSON.parse(response);
+export async function rdsSend(
+    params: RdsSendParams,
+): Promise<RequestResult<RdsSendResult>> {
+    try {
+        const response = await invoke<string>('rds_execute', params);
+        return {
+            success: true,
+            data: JSON.parse(response),
+        };
+    } catch {
+        return { success: false };
+    }
 }

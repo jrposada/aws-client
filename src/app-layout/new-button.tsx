@@ -1,4 +1,3 @@
-import EditIcon from '@mui/icons-material/Edit';
 import FileCopyIcon from '@mui/icons-material/FileCopy';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { Menu, MenuItem } from '@mui/material';
@@ -20,18 +19,8 @@ const NewButton: FunctionComponent = () => {
         setAnchorEl(null);
     };
 
-    const handleDynamoDb: MouseEventHandler<HTMLLIElement> = () => {
-        requestService.addRequest('dynamo-db');
-        handleClose();
-    };
-
     const handleRds: MouseEventHandler<HTMLLIElement> = () => {
         requestService.addRequest('rds');
-        handleClose();
-    };
-
-    const handleOpenSearch: MouseEventHandler<HTMLLIElement> = () => {
-        requestService.addRequest('open-search');
         handleClose();
     };
 
@@ -61,17 +50,9 @@ const NewButton: FunctionComponent = () => {
                     'aria-labelledby': 'new-button',
                 }}
             >
-                <MenuItem onClick={handleDynamoDb} disableRipple>
-                    <EditIcon />
-                    DynamoDB
-                </MenuItem>
                 <MenuItem onClick={handleRds} disableRipple>
                     <FileCopyIcon />
                     RDS
-                </MenuItem>
-                <MenuItem onClick={handleOpenSearch} disableRipple>
-                    <FileCopyIcon />
-                    OpenSearch
                 </MenuItem>
             </Menu>
         </>
