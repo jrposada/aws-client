@@ -15,13 +15,10 @@ export function useCreateRequestContext() {
             setCurrentRequest,
             setRequests,
         });
-        service._refresh(
-            {
-                currentRequest,
-                requests,
-            },
-            save,
-        );
+        service._refresh({
+            currentRequest,
+            requests,
+        });
         return service;
     }, [currentRequest, requests, save]);
 
@@ -36,6 +33,10 @@ export function useCreateRequestContext() {
 
     /** Save every `intervalMs` */
     useEffect(() => {
+        if (!save) {
+            return;
+        }
+
         const interval = setInterval(() => {
             requestService.save();
         }, intervalMs);

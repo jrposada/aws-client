@@ -119,7 +119,7 @@ class RequestService {
         this._setters.setCurrentRequest(this.requests[index]);
     }
 
-    _refresh(states: RequestServiceStates, save: boolean): void {
+    _refresh(states: RequestServiceStates): void {
         this.#currentRequest = states.currentRequest;
         this.#requests = states.requests;
 
@@ -130,10 +130,6 @@ class RequestService {
         this.#requests.forEach((request) => {
             this.#hookRequest(request);
         });
-
-        if (save) {
-            this.save();
-        }
     }
 
     #hookRequest(request: Request) {
