@@ -8,13 +8,6 @@ use std::collections::HashMap;
 use crate::services::aws_config::AwsConfig;
 
 #[derive(Debug, Serialize, Deserialize)]
-struct RdsRecord {
-    column1: String,
-    column2: i32,
-    // Add fields as necessary based on your SQL result
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 struct ColumnMetadata {
     name: String,
 }
