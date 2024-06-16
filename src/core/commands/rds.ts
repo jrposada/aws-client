@@ -13,6 +13,5 @@ export type RdsRequest = Request<RdsSendParams, RdsSendResult>;
 
 export async function rdsSend(params: RdsSendParams): Promise<RdsSendResult> {
     const response = await invoke<string>('rds_execute', params);
-    console.log(response);
     return JSON.parse(response);
 }
