@@ -9,8 +9,8 @@ export function useCreateRequestContext() {
 
     const requestService = useMemo(() => {
         const service = new RequestService({
-            setCurrentRequest: setCurrentRequest,
-            setRequests: setRequests,
+            setCurrentRequest,
+            setRequests,
         });
         service._refresh({
             currentRequest,
