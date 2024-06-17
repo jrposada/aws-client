@@ -8,6 +8,7 @@
     "rds-request.secret-arn": "Secret ARN",
     "response-viewport.placeholder": "No result",
     "save": "Save",
+    "save-as": "Save as...",
     "side-menu.calculator": "Calculator"
   }
 }
