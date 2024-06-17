@@ -158,7 +158,7 @@ class RequestService {
         return invoke<string>('save_app_state', {
             state: JSON.stringify({
                 currentRequest: this.#currentRequest,
-                filepath: this.#filepath,
+                filepath: filepath ?? this.#filepath,
                 requests: this.#requests,
             }),
             filepath,
