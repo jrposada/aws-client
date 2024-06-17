@@ -2,13 +2,15 @@
   "translation": {
     "navigation.aurora-db": "Aurora DB",
     "navigation.dynamo-db": "Dynamo DB",
+    "new": "New",
+    "open": "Open",
     "rds-request.cluster-arn": "Cluster ARN",
     "rds-request.database": "Database",
     "rds-request.profile-name": "Profile Name",
     "rds-request.secret-arn": "Secret ARN",
     "response-viewport.placeholder": "No result",
-    "save": "Save",
     "save-as": "Save as...",
+    "save": "Save",
     "side-menu.calculator": "Calculator"
   }
 }
