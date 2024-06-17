@@ -1,16 +1,13 @@
+import { invoke } from '@tauri-apps/api';
+import { save } from '@tauri-apps/api/dialog';
 import { Dispatch, SetStateAction } from 'react';
 import { v4 as uuid } from 'uuid';
 import { rdsSend } from '../../commands/rds';
 import { Request, RequestResult, RequestType } from './request';
-import { invoke } from '@tauri-apps/api';
 
-type RequestServiceSetters = {
-    setCurrentRequest: Dispatch<SetStateAction<Request | undefined>>;
-    setRequests: Dispatch<SetStateAction<Request[]>>;
-};
-
-type RequestServiceStates = {
+export type RequestServiceState = {
     currentRequest: Request | undefined;
+    filepath: string | undefined;
     requests: Request[];
 };
 
@@ -29,17 +26,37 @@ class RequestService {
         );
     }
 
+    get filepath(): string | undefined {
+        return this.#filepath;
+    }
+
+    get filename(): string | undefined {
+        const filenameWithExtension = this.filepath
+            ?.split('/')
+            .pop()
+            ?.split('\\')
+            .pop();
+
+        return filenameWithExtension?.substring(
+            0,
+            filenameWithExtension.lastIndexOf('.'),
+        );
+    }
+
     get requests() {
         return this.#requests;
     }
 
     #currentRequest: Request | undefined;
+    #filepath: string | undefined;
     #requests: Request[] = [];
 
-    constructor(private _setters: RequestServiceSetters) {}
+    constructor(
+        private _setter: Dispatch<SetStateAction<RequestServiceState>>,
+    ) {}
 
     addRequest(type: RequestType): void {
-        this._setters.setRequests((prev) => {
+        this._setter((prev) => {
             const id = uuid();
 
             const request: Request = {
@@ -60,8 +77,11 @@ class RequestService {
             };
             this.#hookRequest(request);
 
-            const next = [...prev, request];
-            this._setters.setCurrentRequest(request);
+            const next: RequestServiceState = {
+                ...prev,
+                currentRequest: request,
+                requests: [...prev.requests, request],
+            };
 
             return next;
         });
@@ -69,10 +89,14 @@ class RequestService {
 
     async load(): Promise<void> {
         return invoke<string>('load_app_state').then((stateStr) => {
-            const state = JSON.parse(stateStr);
+            const state = JSON.parse(stateStr) as RequestServiceState;
 
-            this._setters.setCurrentRequest(state.currentRequest);
-            this._setters.setRequests(state.requests ?? []);
+            this._setter((prev) => {
+                return {
+                    ...prev,
+                    ...state,
+                };
+            });
         });
     }
 
@@ -85,39 +109,91 @@ class RequestService {
             return;
         }
 
-        this._setters.setRequests((prev) => {
-            if (index < 0 || index > prev.length) {
+        this._setter((prev) => {
+            if (index < 0 || index > prev.requests.length) {
                 console.error(
                     `Error removing request with index "${indexString}". Index out of bounds`,
                 );
                 return prev;
             }
 
-            const next = [...prev.slice(0, index), ...prev.slice(index + 1)];
+            const next: RequestServiceState = {
+                ...prev,
+                requests: [
+                    ...prev.requests.slice(0, index),
+                    ...prev.requests.slice(index + 1),
+                ],
+            };
 
-            if (this.currentRequestIndex ?? index >= next.length) {
-                this._setters.setCurrentRequest(next[next.length - 1]);
+            if (prev.currentRequest?.id === prev.requests[index].id) {
+                // Current removed
+
+                const nextCurrentIndex = prev.requests.findIndex(
+                    (item) => item.id === prev.currentRequest?.id,
+                );
+
+                if (nextCurrentIndex >= next.requests.length) {
+                    next.currentRequest =
+                        next.requests[next.requests.length - 1];
+                } else {
+                    next.currentRequest = next.requests[nextCurrentIndex];
+                }
             }
 
             return next;
         });
     }
 
-    async save(): Promise<string> {
+    /** Save current workspace.
+     * @param filepath If not defined then it will save to internal app state.
+     */
+    async save(filepath?: string): Promise<string> {
+        if (filepath) {
+            this._setter((prev) => ({
+                ...prev,
+                filepath,
+            }));
+        }
+
         return invoke<string>('save_app_state', {
             state: JSON.stringify({
                 currentRequest: this.#currentRequest,
+                filepath: filepath ?? this.#filepath,
                 requests: this.#requests,
             }),
+            filepath,
         });
     }
 
-    setCurrentRequestByIndex(index: number): void {
-        this._setters.setCurrentRequest(this.requests[index]);
+    async saveAs() {
+        try {
+            const filepath = await save({
+                title: 'Save as',
+                filters: [{ name: 'AWS Client', extensions: ['aws-client'] }],
+            });
+
+            if (!filepath && typeof filepath !== 'string') {
+                return;
+            }
+
+            this.save(filepath as string) // String type checked above.
+                .then(() => console.log('save')) // TODO toast
+                .catch(() => console.log('error'));
+        } catch (error) {
+            console.error('Failed to select file:', error);
+        }
     }
 
-    _refresh(states: RequestServiceStates): void {
+    setCurrentRequestByIndex(index: number): void {
+        this._setter((prev) => ({
+            ...prev,
+            currentRequest: prev.requests[index],
+        }));
+    }
+
+    _refresh(states: RequestServiceState): void {
         this.#currentRequest = states.currentRequest;
+        this.#filepath = states.filepath;
         this.#requests = states.requests;
 
         if (this.#currentRequest) {
@@ -174,12 +250,15 @@ class RequestService {
     }
 
     #updateRequestAtIndex(index: number, request: Request) {
-        if (this.#currentRequest?.id === request.id) {
-            this._setters.setCurrentRequest(request);
-        }
-        this._setters.setRequests((prev) => {
-            const next = [...prev];
-            next[index] = request;
+        this._setter((prev) => {
+            const next: RequestServiceState = { ...prev };
+
+            if (prev.currentRequest?.id === request.id) {
+                next.currentRequest = request;
+            }
+
+            next.requests[index] = request;
+
             return next;
         });
     }

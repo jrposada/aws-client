@@ -1,26 +1,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import requestContext from './request-context';
-import { RequestService } from './request-service';
-import { Request } from './request';
+import { RequestService, RequestServiceState } from './request-service';
 
 const intervalMs = 1000 * 60 * 5; // 5 minutes
 
 export function useCreateRequestContext() {
-    const [currentRequest, setCurrentRequest] = useState<Request>();
-    const [requests, setRequests] = useState<Request[]>([]);
+    const [state, setState] = useState<RequestServiceState>({
+        currentRequest: undefined,
+        filepath: undefined,
+        requests: [],
+    });
     const [save, setSave] = useState(false);
 
     const requestService = useMemo(() => {
-        const service = new RequestService({
-            setCurrentRequest,
-            setRequests,
-        });
-        service._refresh({
-            currentRequest,
-            requests,
-        });
+        const service = new RequestService(setState);
+        service._refresh(state);
         return service;
-    }, [currentRequest, requests, save]);
+    }, [state, save]);
 
     /** Load app state on start up */
     useEffect(() => {

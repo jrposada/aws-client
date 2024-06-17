@@ -14,12 +14,13 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
     const requestService = useRequestService();
 
     const handleSave: MouseEventHandler<HTMLButtonElement> = () => {
-        console.log('TODO save tab');
-        // requestService
-        //     .save()
-        //     .then(() => console.log('save'))
-        //     .catch(() => console.log('error'));
+        if (requestService.filepath) {
+            requestService.save(requestService.filepath);
+        } else {
+            requestService.saveAs();
+        }
     };
+
     const handleSend: MouseEventHandler<HTMLButtonElement> = () => {
         request.send();
     };

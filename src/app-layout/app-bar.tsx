@@ -1,22 +1,18 @@
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import MenuIcon from '@mui/icons-material/Menu';
-import { Toolbar, useTheme } from '@mui/material';
+import { Toolbar, Typography, useTheme } from '@mui/material';
 import { appWindow } from '@tauri-apps/api/window';
 import { MouseEventHandler } from 'react';
+import { useRequestService } from '../core/hooks/request-context/use-request-service';
+import AppIconButton from './app-icon-button';
 import AppWindowButtons from './app-window-buttons';
 import NewButton from './new-button';
 import StyledAppBar from './styled/app-bar';
-import AppBarIconButton from './styled/app-bar-icon-button';
 
 type AppBarProps = {
     open: boolean;
-    toggleDrawer: () => void;
 };
 
-const AppBar: React.FunctionComponent<AppBarProps> = ({
-    open,
-    toggleDrawer,
-}) => {
+const AppBar: React.FunctionComponent<AppBarProps> = ({ open }) => {
+    const requestService = useRequestService();
     const theme = useTheme();
 
     const handleAppBarMouseDown: MouseEventHandler = () => {
@@ -51,16 +47,19 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({
                         paddingRight: 0,
                     }}
                 >
-                    <AppBarIconButton
-                        aria-label="open drawer"
-                        color="inherit"
-                        edge="start"
-                        onClick={toggleDrawer}
-                    >
-                        {open ? <ChevronLeftIcon /> : <MenuIcon />}
-                    </AppBarIconButton>
+                    <AppIconButton />
 
                     <NewButton />
+
+                    <Typography
+                        sx={{
+                            ml: 'auto',
+                            mr: 'auto',
+                        }}
+                        variant="subtitle2"
+                    >
+                        {requestService.filename}
+                    </Typography>
 
                     <AppWindowButtons />
                 </Toolbar>
