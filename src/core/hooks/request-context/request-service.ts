@@ -95,7 +95,6 @@ class RequestService {
             (stateStr) => {
                 const state = JSON.parse(stateStr) as RequestServiceState;
 
-                console.log('load', state);
                 this._setter((prev) => {
                     return {
                         ...prev,
