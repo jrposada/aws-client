@@ -1,11 +1,5 @@
 import { Dispatch, MouseEventHandler, SetStateAction } from 'react';
 
-export type RequestServiceState = {
-    currentRequest: Request | undefined;
-    filepath: string | undefined;
-    requests: Request[];
-};
-
 type ContextMenu = {
     mouseY: number;
     mouseX: number;
