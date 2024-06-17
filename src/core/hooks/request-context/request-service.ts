@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api';
-import { save } from '@tauri-apps/api/dialog';
+import { open, save } from '@tauri-apps/api/dialog';
 import { Dispatch, SetStateAction } from 'react';
 import { v4 as uuid } from 'uuid';
 import { rdsSend } from '../../commands/rds';
@@ -87,17 +87,37 @@ class RequestService {
         });
     }
 
-    async load(): Promise<void> {
-        return invoke<string>('load_app_state').then((stateStr) => {
-            const state = JSON.parse(stateStr) as RequestServiceState;
+    /** Open workspace.
+     * @param filepath If not defined then it load internal app state.
+     */
+    async load(filepath?: string): Promise<void> {
+        return invoke<string>('load_app_state', { filepath }).then(
+            (stateStr) => {
+                const state = JSON.parse(stateStr) as RequestServiceState;
 
-            this._setter((prev) => {
-                return {
-                    ...prev,
-                    ...state,
-                };
-            });
+                console.log('load', state);
+                this._setter((prev) => {
+                    return {
+                        ...prev,
+                        ...state,
+                    };
+                });
+            },
+        );
+    }
+
+    async open(): Promise<void> {
+        const filepath = await open({
+            multiple: false,
+            title: 'Open',
+            filters: [{ name: 'AWS Client', extensions: ['aws-client'] }],
         });
+
+        if (!filepath && typeof filepath !== 'string') {
+            return;
+        }
+
+        return this.load(filepath as string); // String type checked above.
     }
 
     removeRequest(indexString: string | undefined) {

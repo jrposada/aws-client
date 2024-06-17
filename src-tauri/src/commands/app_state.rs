@@ -23,7 +23,7 @@ pub async fn save_app_state(
         app_data_dir.join(format!("app_state{}", EXTENSION))
     };
 
-    println!("{:?}", filepath);
+    println!("Save to {:?}", filepath);
 
     let mut file = File::create(filepath).map_err(|e| e.to_string())?;
     file.write_all(state.as_bytes())
@@ -33,10 +33,22 @@ pub async fn save_app_state(
 }
 
 #[tauri::command]
-pub fn load_app_state(app_handle: AppHandle) -> Result<String, String> {
-    let app_data_dir: PathBuf =
-        app_data_dir(&app_handle.config()).ok_or("Failed to get app data directory")?;
-    let filepath = app_data_dir.join(format!("app_state{}", EXTENSION));
+pub fn load_app_state(app_handle: AppHandle, filepath: Option<String>) -> Result<String, String> {
+    let filepath: PathBuf = if let Some(custom_path) = filepath {
+        if !custom_path.ends_with(EXTENSION) {
+            return Err(format!(
+                "Filepath does not end with the required extension: {}",
+                EXTENSION
+            ));
+        }
+        PathBuf::from(custom_path)
+    } else {
+        let app_data_dir: PathBuf =
+            app_data_dir(&app_handle.config()).ok_or("Failed to get app data directory")?;
+        app_data_dir.join(format!("app_state{}", EXTENSION))
+    };
+
+    println!("Load from {:?}", filepath);
 
     if !filepath.exists() {
         return Ok("{}".into()); // Return an empty JSON object if the state file does not exist
