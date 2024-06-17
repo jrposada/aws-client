@@ -9,14 +9,14 @@ const MenuButtonItem: FunctionComponent<MenuItemProps> = ({
 }) => {
     const requestService = useMenuButton();
 
-    const handleNew: MouseEventHandler<HTMLLIElement> = (event) => {
+    const handleClick: MouseEventHandler<HTMLLIElement> = (event) => {
         onClick?.(event);
         requestService.close();
     };
 
     return (
         <>
-            <MenuItem {...restProps} onClick={handleNew}>
+            <MenuItem {...restProps} onClick={handleClick}>
                 {children}
             </MenuItem>
         </>
