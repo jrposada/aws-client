@@ -2,7 +2,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import { Divider } from '@mui/material';
 import { t } from 'i18next';
 import { FunctionComponent, MouseEventHandler, useRef } from 'react';
-import { useRequestService } from '../core/hooks/request-context/use-request-service';
+import { useWorkspaceService } from '../core/hooks/workspace-context/use-workspace-service';
 import MenuButton from '../ui/menu-button/menu-button';
 import MenuButtonItem from '../ui/menu-button/menu-button-item';
 import { MenuButtonService } from '../ui/menu-button/menu-button-service';
@@ -10,7 +10,7 @@ import AppBarIconButton from './styled/app-bar-icon-button';
 
 const AppIconButton: FunctionComponent = () => {
     const menuButtonService = useRef<MenuButtonService>(null);
-    const requestService = useRequestService();
+    const requestService = useWorkspaceService();
 
     const handleOpen: MouseEventHandler<HTMLLIElement> = () => {
         requestService.open();

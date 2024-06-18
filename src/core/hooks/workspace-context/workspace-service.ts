@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 import { rdsSend } from '../../commands/rds';
 import { Request, RequestResult, RequestType } from './request';
 
-export type RequestServiceState = {
+export type WorkspaceServiceState = {
     currentRequest: Request | undefined;
     filepath: string | undefined;
     requests: Request[];
@@ -15,7 +15,7 @@ const commands = {
     rds: rdsSend,
 };
 
-class RequestService {
+export class WorkspaceService {
     get currentRequest(): Request | undefined {
         return this.#currentRequest;
     }
@@ -52,7 +52,7 @@ class RequestService {
     #requests: Request[] = [];
 
     constructor(
-        private _setter: Dispatch<SetStateAction<RequestServiceState>>,
+        private _setter: Dispatch<SetStateAction<WorkspaceServiceState>>,
     ) {}
 
     addRequest(type: RequestType): void {
@@ -77,7 +77,7 @@ class RequestService {
             };
             this.#hookRequest(request);
 
-            const next: RequestServiceState = {
+            const next: WorkspaceServiceState = {
                 ...prev,
                 currentRequest: request,
                 requests: [...prev.requests, request],
@@ -93,7 +93,7 @@ class RequestService {
     async load(filepath?: string): Promise<void> {
         return invoke<string>('load_app_state', { filepath }).then(
             (stateStr) => {
-                const state = JSON.parse(stateStr) as RequestServiceState;
+                const state = JSON.parse(stateStr) as WorkspaceServiceState;
 
                 this._setter((prev) => {
                     return {
@@ -136,7 +136,7 @@ class RequestService {
                 return prev;
             }
 
-            const next: RequestServiceState = {
+            const next: WorkspaceServiceState = {
                 ...prev,
                 requests: [
                     ...prev.requests.slice(0, index),
@@ -210,7 +210,7 @@ class RequestService {
         }));
     }
 
-    _refresh(states: RequestServiceState): void {
+    _refresh(states: WorkspaceServiceState): void {
         this.#currentRequest = states.currentRequest;
         this.#filepath = states.filepath;
         this.#requests = states.requests;
@@ -270,7 +270,7 @@ class RequestService {
 
     #updateRequestAtIndex(index: number, request: Request) {
         this._setter((prev) => {
-            const next: RequestServiceState = { ...prev };
+            const next: WorkspaceServiceState = { ...prev };
 
             if (prev.currentRequest?.id === request.id) {
                 next.currentRequest = request;
@@ -282,6 +282,3 @@ class RequestService {
         });
     }
 }
-
-export { RequestService };
-export type { Request, RequestType };

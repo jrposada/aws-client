@@ -1,6 +1,6 @@
 import { Box, Tabs, TabsProps } from '@mui/material';
 import { FunctionComponent } from 'react';
-import { useRequestService } from '../../core/hooks/request-context/use-request-service';
+import { useWorkspaceService } from '../../core/hooks/workspace-context/use-workspace-service';
 import RequestPanel from './request-panel/request-panel';
 import ClosableTab, {
     ClosableTabProps,
@@ -14,7 +14,7 @@ const sxHeight = {
 };
 
 const HomeRoute: FunctionComponent = () => {
-    const requestService = useRequestService();
+    const requestService = useWorkspaceService();
 
     const handleChange: TabsProps['onChange'] = (_, nextValue: number) => {
         requestService.setCurrentRequestByIndex(nextValue);

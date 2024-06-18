@@ -2,8 +2,8 @@ import { Box, Button, Toolbar } from '@mui/material';
 import { t } from 'i18next';
 import { FunctionComponent, MouseEventHandler } from 'react';
 import { RdsRequest } from '../../../core/commands/rds';
-import { Request } from '../../../core/hooks/request-context/request-service';
-import { useRequestService } from '../../../core/hooks/request-context/use-request-service';
+import { Request } from '../../../core/hooks/workspace-context/request';
+import { useWorkspaceService } from '../../../core/hooks/workspace-context/use-workspace-service';
 import RdsPanel from '../../rds/rds-panel/rds-panel';
 
 type RequestPanelProps = {
@@ -11,7 +11,7 @@ type RequestPanelProps = {
 };
 
 const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
-    const requestService = useRequestService();
+    const requestService = useWorkspaceService();
 
     const handleSave: MouseEventHandler<HTMLButtonElement> = () => {
         if (requestService.filepath) {

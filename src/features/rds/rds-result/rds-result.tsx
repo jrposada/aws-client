@@ -1,7 +1,7 @@
 import { FunctionComponent, useMemo } from 'react';
 import { RdsSendResult } from '../../../core/commands/rds';
+import { RequestResult } from '../../../core/hooks/workspace-context/request';
 import Table, { TableProps } from '../../../ui/table/table';
-import { RequestResult } from '../../../core/hooks/request-context/request';
 
 type RdsResultProps = {
     data: RequestResult<RdsSendResult>;

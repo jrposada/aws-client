@@ -1,19 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
-import requestContext from './request-context';
-import { RequestService, RequestServiceState } from './request-service';
+import workspaceContext from './workspace-context';
+import { WorkspaceService, WorkspaceServiceState } from './workspace-service';
 
 const intervalMs = 1000 * 60 * 5; // 5 minutes
 
-export function useCreateRequestContext() {
-    const [state, setState] = useState<RequestServiceState>({
+export function useCreateWorkspaceContext() {
+    const [state, setState] = useState<WorkspaceServiceState>({
         currentRequest: undefined,
         filepath: undefined,
         requests: [],
     });
     const [save, setSave] = useState(false);
 
-    const requestService = useMemo(() => {
-        const service = new RequestService(setState);
+    const workspaceService = useMemo(() => {
+        const service = new WorkspaceService(setState);
         service._refresh(state);
         return service;
     }, [state, save]);
@@ -24,8 +24,8 @@ export function useCreateRequestContext() {
             return;
         }
 
-        requestService.load().then(() => setSave(true));
-    }, [requestService, save]);
+        workspaceService.load().then(() => setSave(true));
+    }, [workspaceService, save]);
 
     /** Save every `intervalMs` */
     useEffect(() => {
@@ -34,13 +34,13 @@ export function useCreateRequestContext() {
         }
 
         const interval = setInterval(() => {
-            requestService.save();
+            workspaceService.save();
         }, intervalMs);
 
         return () => {
             clearInterval(interval);
         };
-    }, [requestService]);
+    }, [workspaceService]);
 
-    return { requestContext, requestService };
+    return { workspaceContext, workspaceService };
 }
