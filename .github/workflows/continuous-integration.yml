@@ -36,6 +36,6 @@ jobs:
     name: 'Build'
     uses: jrposada/github-actions/.github/workflows/tauri-build.yml@feat/tauri
     with:
-      artifact-path-1: ./src-tauri/target/release/bundle
-      artifact-name-1: binary
+      bundle-folder: ./src-tauri/target/release/bundle
+      artifact-name: binary
       script: tauri build
