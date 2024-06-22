@@ -2,12 +2,12 @@ import FileCopyIcon from '@mui/icons-material/FileCopy';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { Menu, MenuItem } from '@mui/material';
 import { FunctionComponent, MouseEventHandler, useState } from 'react';
-import { useRequestService } from '../core/hooks/request-context/use-request-service';
+import { useWorkspaceService } from '../core/hooks/workspace-context/use-workspace-service';
 import AppBarButton from './styled/app-bar-button';
 
 const NewButton: FunctionComponent = () => {
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-    const requestService = useRequestService();
+    const requestService = useWorkspaceService();
 
     const open = Boolean(anchorEl);
 

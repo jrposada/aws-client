@@ -1,7 +1,7 @@
 import { Toolbar, Typography, useTheme } from '@mui/material';
 import { appWindow } from '@tauri-apps/api/window';
 import { MouseEventHandler } from 'react';
-import { useRequestService } from '../core/hooks/request-context/use-request-service';
+import { useWorkspaceService } from '../core/hooks/workspace-context/use-workspace-service';
 import AppIconButton from './app-icon-button';
 import AppWindowButtons from './app-window-buttons';
 import NewButton from './new-button';
@@ -12,7 +12,8 @@ type AppBarProps = {
 };
 
 const AppBar: React.FunctionComponent<AppBarProps> = ({ open }) => {
-    const requestService = useRequestService();
+    const requestService = useWorkspaceService();
+
     const theme = useTheme();
 
     const handleAppBarMouseDown: MouseEventHandler = () => {

@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 
 vi.mock('./app-layout', () => ({ AppLayout: () => {} }));
-vi.mock('./core/hooks/request-context/create-request-context', () => ({
-    useCreateRequestContext: () => ({
-        requestContext: { Provider: () => <></> },
+vi.mock('./core/hooks/workspace-context/create-workspace-context', () => ({
+    useCreateWorkspaceContext: () => ({
+        workspaceContext: { Provider: () => <></> },
     }),
 }));
 

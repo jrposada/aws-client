@@ -1,14 +1,14 @@
 import { FunctionComponent } from 'react';
 import { AppLayout } from './app-layout';
-import { useCreateRequestContext } from './core/hooks/request-context/create-request-context';
+import { useCreateWorkspaceContext } from './core/hooks/workspace-context/create-workspace-context';
 
 const App: FunctionComponent = () => {
-    const { requestService, requestContext } = useCreateRequestContext();
+    const { workspaceService, workspaceContext } = useCreateWorkspaceContext();
 
     return (
-        <requestContext.Provider value={requestService}>
+        <workspaceContext.Provider value={workspaceService}>
             <AppLayout />
-        </requestContext.Provider>
+        </workspaceContext.Provider>
     );
 };
 

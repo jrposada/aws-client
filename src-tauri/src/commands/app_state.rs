@@ -12,9 +12,12 @@ pub async fn save_app_state(
     state: &str,
     filepath: Option<String>,
 ) -> Result<String, String> {
-    let filepath: PathBuf = if let Some(mut custom_path) = filepath {
+    let filepath: PathBuf = if let Some(custom_path) = filepath {
         if !custom_path.ends_with(EXTENSION) {
-            custom_path.push_str(EXTENSION);
+            return Err(format!(
+                "Filepath does not end with the required extension: {}",
+                EXTENSION
+            ));
         }
         PathBuf::from(custom_path)
     } else {

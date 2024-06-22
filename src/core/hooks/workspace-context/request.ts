@@ -17,6 +17,7 @@ export type Request<
 > = {
     data: TData;
     id: string;
+    isDirty: boolean;
     requestType: RequestType;
     result?: RequestResult<TResult>;
     send: () => Promise<void>;

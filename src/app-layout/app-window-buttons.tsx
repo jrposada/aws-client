@@ -9,7 +9,7 @@ import { FunctionComponent, MouseEventHandler, useState } from 'react';
 import AppWindowButton, {
     AppWindowButtonProps,
 } from './styled/app-window-button';
-import { useRequestService } from '../core/hooks/request-context/use-request-service';
+import { useWorkspaceService } from '../core/hooks/workspace-context/use-workspace-service';
 
 const buttonProps: Partial<AppWindowButtonProps> = {
     color: 'inherit',
@@ -20,7 +20,7 @@ const iconProps: DefaultComponentProps<SvgIconTypeMap<{}, 'svg'>> = {
 };
 
 const AppWindowButtons: FunctionComponent = () => {
-    const requestService = useRequestService();
+    const requestService = useWorkspaceService();
 
     const [isMaximized, setIsMaximized] = useState(false);
     const handleMinimize = () => {

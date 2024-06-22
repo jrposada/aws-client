@@ -1,10 +1,11 @@
+import CircleIcon from '@mui/icons-material/Circle';
 import { Box, Tabs, TabsProps } from '@mui/material';
 import { FunctionComponent } from 'react';
-import { useRequestService } from '../../core/hooks/request-context/use-request-service';
-import RequestPanel from './request-panel/request-panel';
+import { useWorkspaceService } from '../../core/hooks/workspace-context/use-workspace-service';
 import ClosableTab, {
     ClosableTabProps,
 } from '../../ui/closable-tab/closable-tab';
+import RequestPanel from './request-panel/request-panel';
 
 const tabHeight = '2rem';
 
@@ -14,7 +15,7 @@ const sxHeight = {
 };
 
 const HomeRoute: FunctionComponent = () => {
-    const requestService = useRequestService();
+    const requestService = useWorkspaceService();
 
     const handleChange: TabsProps['onChange'] = (_, nextValue: number) => {
         requestService.setCurrentRequestByIndex(nextValue);
@@ -43,20 +44,39 @@ const HomeRoute: FunctionComponent = () => {
                         ...sxHeight,
                     }}
                 >
-                    {requestService.requests.map(({ title, id }, index) => (
-                        <ClosableTab
-                            label={title}
-                            key={id}
-                            id={`${index}`}
-                            onClose={handleClose}
-                            sx={{
-                                fontSize: 'caption.fontSize',
-                                paddingBlock: '1px',
-                                paddingInline: '1px',
-                                ...sxHeight,
-                            }}
-                        />
-                    ))}
+                    {requestService.requests.map(
+                        ({ id, isDirty, title }, index) => (
+                            <ClosableTab
+                                label={
+                                    <Box
+                                        sx={{
+                                            alignItems: 'center',
+                                            display: 'flex',
+                                            gap: 1,
+                                        }}
+                                    >
+                                        {title}
+                                        {isDirty && (
+                                            <span
+                                                style={{ fontSize: '0.5rem' }}
+                                            >
+                                                <CircleIcon fontSize="inherit" />
+                                            </span>
+                                        )}
+                                    </Box>
+                                }
+                                key={id}
+                                id={`${index}`}
+                                onClose={handleClose}
+                                sx={{
+                                    fontSize: 'caption.fontSize',
+                                    paddingBlock: '1px',
+                                    paddingInline: '1px',
+                                    ...sxHeight,
+                                }}
+                            />
+                        ),
+                    )}
                 </Tabs>
             </Box>
             {!!requestService.currentRequest && (

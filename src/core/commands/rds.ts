@@ -3,7 +3,7 @@ import {
     Request,
     RequestData,
     RequestResult,
-} from '../hooks/request-context/request';
+} from '../hooks/workspace-context/request';
 
 export type RdsSendParams = RequestData & {
     clusterArn: string;
