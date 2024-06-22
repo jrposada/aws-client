@@ -1,20 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import workspaceContext from './workspace-context';
-import { WorkspaceService, WorkspaceServiceState } from './workspace-service';
+import {
+    DEFAULT_STATE,
+    WorkspaceService,
+    WorkspaceServiceState,
+} from './workspace-service';
 
 const intervalMs = 1000 * 60 * 5; // 5 minutes
 
 export function useCreateWorkspaceContext() {
-    const [state, setState] = useState<WorkspaceServiceState>({
-        currentRequest: undefined,
-        filepath: undefined,
-        requests: [],
-    });
+    const [savedState, setSavedState] =
+        useState<WorkspaceServiceState>(DEFAULT_STATE);
+
+    const [state, setState] = useState<WorkspaceServiceState>(DEFAULT_STATE);
     const [save, setSave] = useState(false);
 
     const workspaceService = useMemo(() => {
-        const service = new WorkspaceService(setState);
-        service._refresh(state);
+        const service = new WorkspaceService({
+            savedState: setSavedState,
+            state: setState,
+        });
+        service._refresh(state, savedState);
         return service;
     }, [state, save]);
 

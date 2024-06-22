@@ -15,9 +15,9 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
 
     const handleSave: MouseEventHandler<HTMLButtonElement> = () => {
         if (requestService.filepath) {
-            requestService.save(requestService.filepath);
+            requestService.saveCurrent(requestService.filepath);
         } else {
-            requestService.saveAs();
+            requestService.saveCurrentAs();
         }
     };
 
@@ -47,7 +47,11 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
                     }}
                     variant="dense"
                 >
-                    <Button onClick={handleSave} sx={{ ml: 'auto' }}>
+                    <Button
+                        disabled={!request.isDirty}
+                        onClick={handleSave}
+                        sx={{ ml: 'auto' }}
+                    >
                         {t('save')}
                     </Button>
                 </Toolbar>

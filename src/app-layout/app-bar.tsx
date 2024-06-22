@@ -13,6 +13,7 @@ type AppBarProps = {
 
 const AppBar: React.FunctionComponent<AppBarProps> = ({ open }) => {
     const requestService = useWorkspaceService();
+
     const theme = useTheme();
 
     const handleAppBarMouseDown: MouseEventHandler = () => {

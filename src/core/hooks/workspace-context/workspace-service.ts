@@ -5,6 +5,11 @@ import { v4 as uuid } from 'uuid';
 import { rdsSend } from '../../commands/rds';
 import { Request, RequestResult, RequestType } from './request';
 
+type WorkspaceServiceSetters = {
+    savedState: Dispatch<SetStateAction<WorkspaceServiceState>>;
+    state: Dispatch<SetStateAction<WorkspaceServiceState>>;
+};
+
 export type WorkspaceServiceState = {
     currentRequest: Request | undefined;
     filepath: string | undefined;
@@ -15,19 +20,27 @@ const commands = {
     rds: rdsSend,
 };
 
+const extension = 'aws-client';
+
+export const DEFAULT_STATE: WorkspaceServiceState = {
+    currentRequest: undefined,
+    filepath: undefined,
+    requests: [],
+};
+
 export class WorkspaceService {
     get currentRequest(): Request | undefined {
-        return this.#currentRequest;
+        return this.#state.currentRequest;
     }
 
     get currentRequestIndex(): number | undefined {
-        return this.#requests.findIndex(
-            (request) => request.id === this.#currentRequest?.id,
+        return this.#state.requests.findIndex(
+            (request) => request.id === this.#state.currentRequest?.id,
         );
     }
 
     get filepath(): string | undefined {
-        return this.#filepath;
+        return this.#state.filepath;
     }
 
     get filename(): string | undefined {
@@ -44,19 +57,16 @@ export class WorkspaceService {
     }
 
     get requests() {
-        return this.#requests;
+        return this.#state.requests;
     }
 
-    #currentRequest: Request | undefined;
-    #filepath: string | undefined;
-    #requests: Request[] = [];
+    #state: WorkspaceServiceState = DEFAULT_STATE;
+    #savedState: WorkspaceServiceState = DEFAULT_STATE;
 
-    constructor(
-        private _setter: Dispatch<SetStateAction<WorkspaceServiceState>>,
-    ) {}
+    constructor(private _setters: WorkspaceServiceSetters) {}
 
     addRequest(type: RequestType): void {
-        this._setter((prev) => {
+        this._setters.state((prev) => {
             const id = uuid();
 
             const request: Request = {
@@ -70,6 +80,7 @@ export class WorkspaceService {
                     query: 'select * from connection_task_template limit 1',
                 } as any,
                 id,
+                isDirty: true,
                 requestType: type,
                 send: async () => {}, // needs to be hooked below
                 setData: () => {}, // needs to be hooked below
@@ -91,18 +102,28 @@ export class WorkspaceService {
      * @param filepath If not defined then it load internal app state.
      */
     async load(filepath?: string): Promise<void> {
-        return invoke<string>('load_app_state', { filepath }).then(
-            (stateStr) => {
-                const state = JSON.parse(stateStr) as WorkspaceServiceState;
+        const stateStr = await invoke<string>('load_app_state', { filepath });
 
-                this._setter((prev) => {
-                    return {
-                        ...prev,
-                        ...state,
-                    };
-                });
-            },
-        );
+        const state = JSON.parse(stateStr) as WorkspaceServiceState;
+
+        this._setters.state((prev) => ({
+            ...prev,
+            ...state,
+        }));
+
+        if (!filepath && state.filepath) {
+            // We loaded an internal state which has a reference to a saved
+            // workspace. Load that as saved.
+            const savedStateStr = await invoke<string>('load_app_state', {
+                filepath: state.filepath,
+            });
+
+            const savedState = JSON.parse(
+                savedStateStr,
+            ) as WorkspaceServiceState;
+
+            this._setters.savedState((prev) => ({ ...prev, savedState }));
+        }
     }
 
     async open(): Promise<void> {
@@ -128,7 +149,7 @@ export class WorkspaceService {
             return;
         }
 
-        this._setter((prev) => {
+        this._setters.state((prev) => {
             if (index < 0 || index > prev.requests.length) {
                 console.error(
                     `Error removing request with index "${indexString}". Index out of bounds`,
@@ -166,27 +187,144 @@ export class WorkspaceService {
     /** Save current workspace.
      * @param filepath If not defined then it will save to internal app state.
      */
-    async save(filepath?: string): Promise<string> {
-        if (filepath) {
-            this._setter((prev) => ({
-                ...prev,
-                filepath,
-            }));
-        }
+    async save(filepath?: string): Promise<void> {
+        return new Promise<void>(async (resolve) => {
+            const savePromises: Promise<string>[] = [];
 
-        return invoke<string>('save_app_state', {
-            state: JSON.stringify({
-                currentRequest: this.#currentRequest,
-                filepath: filepath ?? this.#filepath,
-                requests: this.#requests,
-            }),
-            filepath,
+            // We want to save the full state. Just need to update all `isDirty`
+            // flags.
+            const nextStates = { ...this.#state };
+
+            if (filepath) {
+                if (nextStates.currentRequest) {
+                    nextStates.currentRequest.isDirty = false;
+                }
+
+                nextStates.requests.forEach((item) => {
+                    item.isDirty = false;
+                });
+
+                // Also save filepath.
+                nextStates.filepath = filepath;
+            }
+
+            // Invoke save for internal state.
+            savePromises.push(
+                invoke<string>('save_app_state', {
+                    state: JSON.stringify(nextStates),
+                }),
+            );
+            // Invoke save for workspace file.
+            if (filepath) {
+                savePromises.push(
+                    invoke<string>('save_app_state', {
+                        state: JSON.stringify(nextStates),
+                        filepath,
+                    }),
+                );
+            }
+
+            // Update React states
+            // FIXME: we should not use previous values outside of setter
+            this._setters.savedState(nextStates);
+            this._setters.state(nextStates);
+
+            resolve();
+        });
+    }
+
+    async saveCurrent(filepath: string): Promise<void> {
+        return new Promise<void>(async (resolve) => {
+            const savePromises: Promise<string>[] = [];
+
+            // Calculate saved internal state.
+            // For internal state we want to save all, but just update the
+            // is dirty for current request.
+            const nextInternalState = { ...this.#state };
+
+            if (nextInternalState.currentRequest) {
+                nextInternalState.currentRequest.isDirty = false;
+                nextInternalState.requests.find(
+                    (item) => item.id === nextInternalState.currentRequest!.id,
+                )!.isDirty = false;
+            }
+
+            // Also save filepath.
+            nextInternalState.filepath = filepath;
+
+            // Invoke save.
+            savePromises.push(
+                invoke<string>('save_app_state', {
+                    state: JSON.stringify(nextInternalState),
+                }),
+            );
+
+            // Calculate next saved state.
+            // For next saved state we want to keep same saved as before
+            // and just modify current request values with those in state.
+            const nextSavedState = { ...this.#savedState };
+
+            if (this.#state.currentRequest) {
+                // There is a current request in the editor. Save it to file
+                nextSavedState.currentRequest = this.#state.currentRequest;
+                nextSavedState.currentRequest.isDirty = false;
+
+                const index = nextSavedState.requests.findIndex(
+                    (item) => item.id === nextSavedState.currentRequest!.id,
+                );
+                if (index < 0) {
+                    // New current requests is not in the saved version. Add it.
+                    nextSavedState.requests.push(nextSavedState.currentRequest);
+                } else {
+                    // There is already a saved version. Update it.
+                    nextSavedState.requests[index] =
+                        nextSavedState.currentRequest;
+                }
+            } else if (nextSavedState.currentRequest) {
+                // There is NOT a current request in the editor, but there is
+                // in the saved file. Remove it.
+                delete nextSavedState.currentRequest;
+            }
+
+            // Also save filepath
+            nextSavedState.filepath = filepath;
+
+            // Invoke save
+            savePromises.push(
+                invoke<string>('save_app_state', {
+                    state: JSON.stringify(nextSavedState),
+                    filepath,
+                }),
+            );
+
+            await Promise.all(savePromises);
+
+            // Update React states
+            // FIXME: we should not use previous state outside of setter
+            this._setters.savedState(nextSavedState);
+            this._setters.state((prev) => {
+                // Next state is not same as next saved. We have to keep old
+                // state and just update isDirty flags.
+                const next = { ...prev };
+                if (next.currentRequest) {
+                    next.currentRequest.isDirty = false;
+
+                    next.requests.find(
+                        (item) => item.id === next.currentRequest!.id,
+                    )!.isDirty = false;
+                }
+                next.filepath = filepath;
+
+                return next;
+            });
+
+            resolve();
         });
     }
 
     async saveAs() {
         try {
-            const filepath = await save({
+            let filepath = await save({
                 title: 'Save as',
                 filters: [{ name: 'AWS Client', extensions: ['aws-client'] }],
             });
@@ -194,6 +332,12 @@ export class WorkspaceService {
             if (!filepath && typeof filepath !== 'string') {
                 return;
             }
+
+            if (!filepath.endsWith(`.${extension}`)) {
+                filepath = `${filepath}.${extension}`;
+            }
+
+            console.log(filepath);
 
             this.save(filepath as string) // String type checked above.
                 .then(() => console.log('save')) // TODO toast
@@ -203,30 +347,60 @@ export class WorkspaceService {
         }
     }
 
+    async saveCurrentAs(): Promise<void> {
+        try {
+            let filepath = await save({
+                title: 'Save as',
+                filters: [{ name: 'AWS Client', extensions: ['aws-client'] }],
+            });
+
+            if (!filepath && typeof filepath !== 'string') {
+                return;
+            }
+
+            if (!filepath.endsWith(`.${extension}`)) {
+                filepath = `${filepath}.${extension}`;
+            }
+
+            console.log(filepath);
+
+            this.saveCurrent(filepath as string) // String type checked above.
+                .then(() => console.log('save')) // TODO toast
+                .catch(() => console.log('error'));
+        } catch (error) {
+            console.error('Failed to select file:', error);
+        }
+    }
+
     setCurrentRequestByIndex(index: number): void {
-        this._setter((prev) => ({
+        this._setters.state((prev) => ({
             ...prev,
             currentRequest: prev.requests[index],
         }));
     }
 
-    _refresh(states: WorkspaceServiceState): void {
-        this.#currentRequest = states.currentRequest;
-        this.#filepath = states.filepath;
-        this.#requests = states.requests;
+    _refresh(
+        state: WorkspaceServiceState,
+        savedState: WorkspaceServiceState,
+    ): void {
+        this.#state = state;
+        this.#savedState = savedState;
 
-        if (this.#currentRequest) {
-            this.#hookRequest(this.#currentRequest);
+        console.log('state', this.#state);
+
+        // We only need to hook up state, not saved state.
+        if (this.#state.currentRequest) {
+            this.#hookRequest(this.#state.currentRequest);
         }
 
-        this.#requests.forEach((request) => {
+        this.#state.requests.forEach((request) => {
             this.#hookRequest(request);
         });
     }
 
     #hookRequest(request: Request) {
         const setData: Request['setData'] = (setter) => {
-            const requestIndex = this.#requests.findIndex(
+            const requestIndex = this.#state.requests.findIndex(
                 (item) => item.id === request.id,
             );
 
@@ -237,11 +411,12 @@ export class WorkspaceService {
             const value =
                 typeof setter !== 'function'
                     ? setter
-                    : setter(this.#requests[requestIndex].data);
+                    : setter(this.#state.requests[requestIndex].data);
 
             this.#updateRequestAtIndex(requestIndex, {
-                ...this.#requests[requestIndex],
+                ...this.#state.requests[requestIndex],
                 data: value,
+                isDirty: true,
             });
         };
 
@@ -250,7 +425,7 @@ export class WorkspaceService {
                 request.data as any,
             )) as RequestResult;
 
-            const requestIndex = this.#requests.findIndex(
+            const requestIndex = this.#state.requests.findIndex(
                 (item) => item.id === request.id,
             );
 
@@ -259,7 +434,7 @@ export class WorkspaceService {
             }
 
             this.#updateRequestAtIndex(requestIndex, {
-                ...this.#requests[requestIndex],
+                ...this.#state.requests[requestIndex],
                 result,
             });
         };
@@ -269,7 +444,7 @@ export class WorkspaceService {
     }
 
     #updateRequestAtIndex(index: number, request: Request) {
-        this._setter((prev) => {
+        this._setters.state((prev) => {
             const next: WorkspaceServiceState = { ...prev };
 
             if (prev.currentRequest?.id === request.id) {
