@@ -337,8 +337,6 @@ export class WorkspaceService {
                 filepath = `${filepath}.${extension}`;
             }
 
-            console.log(filepath);
-
             this.save(filepath as string) // String type checked above.
                 .then(() => console.log('save')) // TODO toast
                 .catch(() => console.log('error'));
@@ -361,8 +359,6 @@ export class WorkspaceService {
             if (!filepath.endsWith(`.${extension}`)) {
                 filepath = `${filepath}.${extension}`;
             }
-
-            console.log(filepath);
 
             this.saveCurrent(filepath as string) // String type checked above.
                 .then(() => console.log('save')) // TODO toast
