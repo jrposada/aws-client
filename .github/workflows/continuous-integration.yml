@@ -34,7 +34,6 @@ jobs:
 
   build:
     name: 'Build'
-    uses: jrposada/github-actions/.github/workflows/npm-script.yml@v1
+    uses: jrposada/github-actions/.github/workflows/tauri-build.yml@feat/tauri
     with:
       script: tauri build
-      artifact-name-1:
