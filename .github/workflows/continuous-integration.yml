@@ -1,10 +1,12 @@
 name: Continuous Integration
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
-
   workflow_dispatch:
 
 jobs:
@@ -29,3 +31,10 @@ jobs:
     uses: jrposada/github-actions/.github/workflows/npm-script.yml@v1
     with:
       script: coverage
+
+  build:
+    name: 'Build'
+    uses: jrposada/github-actions/.github/workflows/npm-script.yml@v1
+    with:
+      script: tauri build
+      artifact-name-1:

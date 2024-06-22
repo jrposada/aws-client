@@ -26,7 +26,7 @@ module.exports = {
             jsx: true, // Enable JSX parsing
         },
     },
-    ignorePatterns: ['dist/**/*', 'coverage/**/*'],
+    ignorePatterns: ['dist/**/*', 'coverage/**/*', 'src-tauri/**/*'],
     rules: {
         'linebreak-style': ['error', 'unix'],
         quotes: ['error', 'single'],
