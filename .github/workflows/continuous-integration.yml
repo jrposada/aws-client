@@ -1,10 +1,12 @@
 name: Continuous Integration
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
-
   workflow_dispatch:
 
 jobs:
@@ -29,3 +31,24 @@ jobs:
     uses: jrposada/github-actions/.github/workflows/npm-script.yml@v1
     with:
       script: coverage
+
+  build:
+    name: 'Build'
+    uses: jrposada/github-actions/.github/workflows/tauri-build.yml@v1
+    with:
+      bundle-folder: ./src-tauri/target/release/bundle
+      artifact-name: binary
+      script: tauri build
+
+  release:
+    name: Release
+    needs: [lint-eslint, lint-prettier, lint-commits, test-unit, build]
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: jrposada/github-actions/.github/workflows/semantic-release.yml@feat/release-assets
+    with:
+      artifact-name-1: binary-macos-latest
+      artifact-path-1: ./src-tauri/target/release/bundle/dmg
+      artifact-name-2: binary-windows-latest
+      artifact-path-2: ./src-tauri/target/release/bundle/msi
