@@ -43,4 +43,7 @@ jobs:
   release:
     name: Release
     needs: [lint-eslint, lint-prettier, lint-commits, test-unit, build]
+    permissions:
+      contents: write
+      pull-requests: write
     uses: jrposada/github-actions/.github/workflows/semantic-release.yml@v1
