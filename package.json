@@ -1,6 +1,6 @@
 {
   "name": "@jrposada/aws-client",
-  "version": "2.0.2-alpha",
+  "version": "0.0.0",
   "type": "module",
   "scripts": {
     "build": "tsc && vite build",
