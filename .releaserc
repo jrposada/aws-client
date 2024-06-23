@@ -10,11 +10,15 @@
             {
                 "assets": [
                     {
-                        "path": "./src-tauri/target/release/bundle/dmg/*.dmg",
-                        "label": "Mac OS"
+                        "path": "./binaries/macos-latest/*.dmg",
+                        "label": "Mac OS (Apple Silicon)"
                     },
                     {
-                        "path": "./src-tauri/target/release/bundle/msi/*.msi",
+                        "path": "./binaries/macos-13/*.dmg",
+                        "label": "Mac OS (Intel)"
+                    },
+                    {
+                        "path": "./binaries/macos-latest/*.msi",
                         "label": "Windows"
                     }
                 ]

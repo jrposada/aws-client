@@ -46,9 +46,11 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: jrposada/github-actions/.github/workflows/semantic-release.yml@feat/release-assets
+    uses: jrposada/github-actions/.github/workflows/semantic-release.yml@v1
     with:
       artifact-name-1: binary-macos-latest
-      artifact-path-1: ./src-tauri/target/release/bundle/dmg
-      artifact-name-2: binary-windows-latest
-      artifact-path-2: ./src-tauri/target/release/bundle/msi
+      artifact-path-1: ./binaries/macos-latest
+      artifact-name-2: binary-macos-13
+      artifact-path-2: ./binaries/macos-13
+      artifact-name-3: binary-windows-latest
+      artifact-path-3: ./binaries/windows-latest
