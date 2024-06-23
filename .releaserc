@@ -10,11 +10,11 @@
             {
                 "assets": [
                     {
-                        "path": "./src-tauri/target/release/bundle/dmg",
+                        "path": "./src-tauri/target/release/bundle/dmg/*.dmg",
                         "label": "Mac OS"
                     },
                     {
-                        "path": "./src-tauri/target/release/bundle/msi",
+                        "path": "./src-tauri/target/release/bundle/msi/*.msi",
                         "label": "Windows"
                     }
                 ]
