@@ -39,7 +39,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    uses: jrposada/github-actions/.github/workflows/semantic-release.yml@v1
+    uses: jrposada/github-actions/.github/workflows/semantic-release.yml@feat/tauri-build-version
     with:
       dry-run: true
 
