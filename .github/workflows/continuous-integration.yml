@@ -34,10 +34,21 @@ jobs:
     with:
       script: coverage
 
+  get-version:
+    name: Get version
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: jrposada/github-actions/.github/workflows/semantic-release.yml@v1
+    with:
+      dry-run: true
+
   build:
     name: 'Build'
-    uses: jrposada/github-actions/.github/workflows/tauri-build.yml@v1
+    needs: ['get-version']
+    uses: jrposada/github-actions/.github/workflows/tauri-build.yml@feat/tauri-build-version
     with:
+      version: ${{ needs.get-version.outputs.version }}
       bundle-folder: ./src-tauri/target/release/bundle
       artifact-name: binary
       script: tauri build
