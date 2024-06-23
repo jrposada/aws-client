@@ -34,8 +34,13 @@ jobs:
 
   build:
     name: 'Build'
-    uses: jrposada/github-actions/.github/workflows/tauri-build.yml@feat/tauri
+    uses: jrposada/github-actions/.github/workflows/tauri-build.yml@v1
     with:
       bundle-folder: ./src-tauri/target/release/bundle
       artifact-name: binary
       script: tauri build
+
+  release:
+    name: Release
+    needs: [lint-eslint, lint-prettier, lint-commits, test-unit, build]
+    uses: jrposada/github-actions/.github/workflows/semantic-release.yml@v1
