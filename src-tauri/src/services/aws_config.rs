@@ -3,12 +3,13 @@ use aws_config::profile::ProfileFileCredentialsProvider;
 use aws_config::profile::ProfileFileRegionProvider;
 use aws_config::BehaviorVersion;
 use aws_config::SdkConfig;
+use log::info;
 
 pub struct AwsConfig {}
 
 impl AwsConfig {
     pub async fn new(profile_name: &str) -> SdkConfig {
-        println!(">>> AwsConfig.new");
+        info!(">>> AwsConfig.new");
 
         // Specify the profile to use
         let credentials_provider = ProfileFileCredentialsProvider::builder()
@@ -27,7 +28,7 @@ impl AwsConfig {
             .load()
             .await;
 
-        println!("<<< AwsConfig.new");
+        info!("<<< AwsConfig.new");
         return config;
     }
 }

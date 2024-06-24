@@ -2,6 +2,7 @@ use aws_sdk_rdsdata::types::Field::{
     BlobValue, BooleanValue, DoubleValue, IsNull, LongValue, StringValue,
 };
 use aws_sdk_rdsdata::Client;
+use log::info;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -20,7 +21,7 @@ pub async fn rds_execute(
     query: &str,
     secret_arn: &str,
 ) -> Result<String, String> {
-    println!(">>> rds_execute");
+    info!(">>> rds_execute");
 
     let config = AwsConfig::new(profile_name).await;
     let client = Client::new(&config);
@@ -73,7 +74,7 @@ pub async fn rds_execute(
         })
         .collect();
 
-    println!("<<< rds_execute");
+    info!("<<< rds_execute");
     match serde_json::to_string(&records) {
         Ok(response_str) => Ok(response_str),
         Err(error) => Err(format!("Failed to convert to JSON: {}", error)),
