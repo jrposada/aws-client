@@ -33,9 +33,9 @@ npm run tauri dev
 
 ## Contributing
 
-1. Pull latest main
+1. Pull latest `beta` branch.
     ```bash
-    git checkout main
+    git checkout beta
     git pull
     ```
 
@@ -43,7 +43,7 @@ npm run tauri dev
 
 3. Make your changes and publish branch.
 
-4. Open Pull Request against main. Make sure to include a short description of your changes. Make sure your PR title follow's pattern  `[feat|fix]: <short-description>`. For example `feat: dynamo-db-request` or `fix: incorrect-aws-credentials`.
+4. Open Pull Request against `beta`. Make sure to include a short description of your changes. Make sure your PR title follow's pattern  `[feat|fix]: <short-description>`. For example `feat: dynamo-db-request` or `fix: incorrect-aws-credentials`.
 
     Use the following template for your description:
 
