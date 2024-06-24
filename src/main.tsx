@@ -4,6 +4,7 @@ import '@fontsource/roboto/500.css';
 import '@fontsource/roboto/700.css';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import { RouterProvider, createRouter } from '@tanstack/react-router';
+import { SnackbarProvider } from 'notistack';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './i18n';
@@ -18,11 +19,13 @@ const router = createRouter({ routeTree });
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
         <ThemeProvider theme={defaultTheme}>
-            <CssBaseline />
-            <RouterProvider
-                router={router}
-                basepath={import.meta.env.BASE_URL}
-            />
+            <SnackbarProvider maxSnack={3}>
+                <CssBaseline />
+                <RouterProvider
+                    router={router}
+                    basepath={import.meta.env.BASE_URL}
+                />
+            </SnackbarProvider>
         </ThemeProvider>
     </React.StrictMode>,
 );

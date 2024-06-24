@@ -4,6 +4,7 @@ import { FunctionComponent, MouseEventHandler } from 'react';
 import { RdsRequest } from '../../../core/commands/rds';
 import { Request } from '../../../core/hooks/workspace-context/request';
 import { useWorkspaceService } from '../../../core/hooks/workspace-context/use-workspace-service';
+import useSnackbar from '../../../ui/snackbar/use-snackbar';
 import RdsPanel from '../../rds/rds-panel/rds-panel';
 
 type RequestPanelProps = {
@@ -11,11 +12,25 @@ type RequestPanelProps = {
 };
 
 const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
+    const { enqueueAutoHideSnackbar } = useSnackbar();
     const requestService = useWorkspaceService();
 
     const handleSave: MouseEventHandler<HTMLButtonElement> = () => {
         if (requestService.filepath) {
-            requestService.saveCurrent(requestService.filepath);
+            requestService
+                .saveCurrent(requestService.filepath)
+                .then(() => {
+                    enqueueAutoHideSnackbar({
+                        message: 'Requests saved.',
+                        variant: 'success',
+                    });
+                })
+                .catch(() => {
+                    enqueueAutoHideSnackbar({
+                        message: 'Could not save request.',
+                        variant: 'error',
+                    });
+                });
         } else {
             requestService.saveCurrentAs();
         }

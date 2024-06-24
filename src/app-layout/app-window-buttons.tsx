@@ -6,10 +6,11 @@ import { SvgIconTypeMap } from '@mui/material';
 import { DefaultComponentProps } from '@mui/material/OverridableComponent';
 import { appWindow } from '@tauri-apps/api/window';
 import { FunctionComponent, MouseEventHandler, useState } from 'react';
+import { useWorkspaceService } from '../core/hooks/workspace-context/use-workspace-service';
+import useSnackbar from '../ui/snackbar/use-snackbar';
 import AppWindowButton, {
     AppWindowButtonProps,
 } from './styled/app-window-button';
-import { useWorkspaceService } from '../core/hooks/workspace-context/use-workspace-service';
 
 const buttonProps: Partial<AppWindowButtonProps> = {
     color: 'inherit',
@@ -20,6 +21,7 @@ const iconProps: DefaultComponentProps<SvgIconTypeMap<{}, 'svg'>> = {
 };
 
 const AppWindowButtons: FunctionComponent = () => {
+    const { enqueueAutoHideSnackbar } = useSnackbar();
     const requestService = useWorkspaceService();
 
     const [isMaximized, setIsMaximized] = useState(false);
@@ -38,9 +40,18 @@ const AppWindowButtons: FunctionComponent = () => {
     };
 
     const handleClose: MouseEventHandler = () => {
-        requestService.save().finally(() => {
-            appWindow.close();
-        });
+        requestService
+            .save()
+            .then(() => {
+                appWindow.close();
+            })
+            .catch((error) => {
+                console.log(error);
+                enqueueAutoHideSnackbar({
+                    message: 'Auto save failed',
+                    variant: 'error',
+                });
+            });
     };
     return (
         <div
