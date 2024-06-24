@@ -1,3 +1,4 @@
+use log::info;
 use std::fs::File;
 use std::io::Read;
 use std::io::Write;
@@ -26,7 +27,7 @@ pub async fn save_app_state(
         app_data_dir.join(format!("app_state{}", EXTENSION))
     };
 
-    println!("Save to {:?}", filepath);
+    info!("Save to {:?}", filepath);
 
     let mut file = File::create(filepath).map_err(|e| e.to_string())?;
     file.write_all(state.as_bytes())
@@ -51,7 +52,7 @@ pub fn load_app_state(app_handle: AppHandle, filepath: Option<String>) -> Result
         app_data_dir.join(format!("app_state{}", EXTENSION))
     };
 
-    println!("Load from {:?}", filepath);
+    info!("Load from {:?}", filepath);
 
     if !filepath.exists() {
         return Ok("{}".into()); // Return an empty JSON object if the state file does not exist
