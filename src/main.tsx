@@ -10,6 +10,11 @@ import ReactDOM from 'react-dom/client';
 import './i18n';
 import { rootRoute } from './root-route';
 import { routes } from './routes';
+import ErrorSnackbar from './ui/snackbar/error-snackbar';
+import InfoSnackbar from './ui/snackbar/info-snackbar';
+import Snackbar from './ui/snackbar/snackbar';
+import SuccessSnackbar from './ui/snackbar/success-snackbar';
+import WarningSnackbar from './ui/snackbar/warning-snackbar';
 
 const defaultTheme = createTheme();
 
@@ -19,7 +24,16 @@ const router = createRouter({ routeTree });
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
         <ThemeProvider theme={defaultTheme}>
-            <SnackbarProvider maxSnack={3}>
+            <SnackbarProvider
+                maxSnack={3}
+                Components={{
+                    default: Snackbar,
+                    error: ErrorSnackbar,
+                    info: InfoSnackbar,
+                    success: SuccessSnackbar,
+                    warning: WarningSnackbar,
+                }}
+            >
                 <CssBaseline />
                 <RouterProvider
                     router={router}
