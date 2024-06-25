@@ -73,7 +73,10 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
                     <TextField
                         onChange={handleTitleChange}
                         value={request.title}
-                        variant="outlined"
+                        variant="standard"
+                        sx={{
+                            flexGrow: 1,
+                        }}
                     />
                     <Button
                         disabled={!request.isDirty}
