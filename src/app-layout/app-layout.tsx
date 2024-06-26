@@ -1,5 +1,5 @@
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import { Box, Divider, IconButton, List, Toolbar } from '@mui/material';
+import { Box, Divider, List, Toolbar } from '@mui/material';
 import { Outlet } from '@tanstack/react-router';
 import { Suspense, lazy } from 'react';
 import { useLocalStorage } from '../core/hooks/use-local-storage/use-local-storage';
@@ -29,28 +29,28 @@ const AppLayout: React.FunctionComponent = () => {
             <AppBar open={open} />
 
             <AppDrawer variant="permanent" open={open}>
+                {/* Offset drawer by app header size */}
+                <Toolbar variant="dense"></Toolbar>
+                {/* Align with request tabs toolbar */}
                 <Toolbar
                     variant="dense"
                     sx={{
+                        height: '2rem',
+                        minHeight: '2rem',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'flex-end',
-                        px: [1],
-                    }}
-                ></Toolbar>
-                <IconButton
-                    onClick={toggleDrawer}
-                    sx={{
-                        ml: 1,
-                        alignSelf: 'start',
+                        justifyContent: 'flex-start',
+                        px: [2],
                     }}
                 >
                     <ChevronLeftIcon
+                        onClick={toggleDrawer}
+                        role="button"
                         style={{
                             transform: open ? 'rotate(0deg)' : 'rotate(180deg)',
                         }}
                     />
-                </IconButton>
+                </Toolbar>
                 <Divider />
                 <List>
                     <DrawerItems />
