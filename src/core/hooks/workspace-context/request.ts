@@ -22,5 +22,6 @@ export type Request<
     result?: RequestResult<TResult>;
     send: () => Promise<void>;
     setData: Dispatch<SetStateAction<TData>>;
+    setTitle: Dispatch<SetStateAction<string>>;
     title: string;
 };

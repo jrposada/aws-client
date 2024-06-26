@@ -4,6 +4,7 @@ import { Dispatch, SetStateAction } from 'react';
 import { v4 as uuid } from 'uuid';
 import { rdsSend } from '../../commands/rds';
 import { Request, RequestResult, RequestType } from './request';
+import { t } from 'i18next';
 
 type WorkspaceServiceSetters = {
     savedState: Dispatch<SetStateAction<WorkspaceServiceState>>;
@@ -34,9 +35,7 @@ export class WorkspaceService {
     }
 
     get currentRequestIndex(): number | undefined {
-        return this.#state.requests.findIndex(
-            (request) => request.id === this.#state.currentRequest?.id,
-        );
+        return this.#findRequestIndexById(this.#state.currentRequest?.id);
     }
 
     get filepath(): string | undefined {
@@ -84,7 +83,8 @@ export class WorkspaceService {
                 requestType: type,
                 send: async () => {}, // needs to be hooked below
                 setData: () => {}, // needs to be hooked below
-                title: type,
+                setTitle: () => {}, // needs to be hooked below
+                title: t('workspace-service.new', { type }),
             };
             this.#hookRequest(request);
 
@@ -395,19 +395,24 @@ export class WorkspaceService {
     }
 
     #hookRequest(request: Request) {
-        const setData: Request['setData'] = (setter) => {
-            const requestIndex = this.#state.requests.findIndex(
-                (item) => item.id === request.id,
-            );
+        const send: Request['send'] = async () => {
+            const requestIndex = this.#findRequestIndexById(request.id);
 
-            if (requestIndex < 0) {
-                throw new Error(`Request with id "${request.id}" not found`);
-            }
+            const result = (await commands[request.requestType](
+                request.data as any,
+            )) as RequestResult;
+
+            this.#updateRequestAtIndex(requestIndex, {
+                ...this.#state.requests[requestIndex],
+                result,
+            });
+        };
+
+        const setData: Request['setData'] = (setter) => {
+            const requestIndex = this.#findRequestIndexById(request.id);
 
             const value =
-                typeof setter !== 'function'
-                    ? setter
-                    : setter(this.#state.requests[requestIndex].data);
+                typeof setter !== 'function' ? setter : setter(request.data);
 
             this.#updateRequestAtIndex(requestIndex, {
                 ...this.#state.requests[requestIndex],
@@ -416,27 +421,21 @@ export class WorkspaceService {
             });
         };
 
-        const send: Request['send'] = async () => {
-            const result = (await commands[request.requestType](
-                request.data as any,
-            )) as RequestResult;
+        const setTitle: Request['setTitle'] = (setter) => {
+            const requestIndex = this.#findRequestIndexById(request.id);
 
-            const requestIndex = this.#state.requests.findIndex(
-                (item) => item.id === request.id,
-            );
-
-            if (requestIndex < 0) {
-                throw new Error(`Request with id "${request.id}" not found`);
-            }
+            const value =
+                typeof setter !== 'function' ? setter : setter(request.title);
 
             this.#updateRequestAtIndex(requestIndex, {
-                ...this.#state.requests[requestIndex],
-                result,
+                ...request,
+                title: value,
             });
         };
 
-        request.setData = setData;
         request.send = send;
+        request.setData = setData;
+        request.setTitle = setTitle;
     }
 
     #updateRequestAtIndex(index: number, request: Request) {
@@ -451,5 +450,21 @@ export class WorkspaceService {
 
             return next;
         });
+    }
+
+    #findRequestIndexById<T extends string | undefined>(
+        id: T,
+    ): T extends string ? number : undefined {
+        if (!id) return undefined as T extends string ? number : undefined;
+
+        const requestIndex = this.#state.requests.findIndex(
+            (item) => item.id === id,
+        );
+
+        if (requestIndex < 0) {
+            throw new Error(`Request with id "${id}" not found`);
+        }
+
+        return requestIndex as T extends string ? number : undefined;
     }
 }

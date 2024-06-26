@@ -1,6 +1,10 @@
-import { Box, Button, Toolbar } from '@mui/material';
+import { Box, Button, TextField, Toolbar } from '@mui/material';
 import { t } from 'i18next';
-import { FunctionComponent, MouseEventHandler } from 'react';
+import {
+    ChangeEventHandler,
+    FunctionComponent,
+    MouseEventHandler,
+} from 'react';
 import { RdsRequest } from '../../../core/commands/rds';
 import { Request } from '../../../core/hooks/workspace-context/request';
 import { useWorkspaceService } from '../../../core/hooks/workspace-context/use-workspace-service';
@@ -40,6 +44,10 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
         request.send();
     };
 
+    const handleTitleChange: ChangeEventHandler<HTMLInputElement> = (event) => {
+        request.setTitle(event.target.value);
+    };
+
     return (
         <>
             <Box
@@ -62,6 +70,14 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
                     }}
                     variant="dense"
                 >
+                    <TextField
+                        onChange={handleTitleChange}
+                        value={request.title}
+                        variant="standard"
+                        sx={{
+                            flexGrow: 1,
+                        }}
+                    />
                     <Button
                         disabled={!request.isDirty}
                         onClick={handleSave}
