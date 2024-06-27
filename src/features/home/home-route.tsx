@@ -22,7 +22,7 @@ const HomeRoute: FunctionComponent = () => {
     };
 
     const handleClose: ClosableTabProps['onClose'] = (index) => {
-        requestService.removeRequest(index);
+        requestService.removeRequestByIndex(Number(index));
     };
 
     return (

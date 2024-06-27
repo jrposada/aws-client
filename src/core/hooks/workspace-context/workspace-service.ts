@@ -140,11 +140,14 @@ export class WorkspaceService {
         return this.load(filepath as string); // String type checked above.
     }
 
-    removeRequest(indexString: string | undefined) {
-        const index = Number(indexString);
-        if (!indexString || isNaN(index)) {
+    removeRequestById(id: string) {
+        this.removeRequestByIndex(this.#findRequestIndexById(id));
+    }
+
+    removeRequestByIndex(index: number | undefined) {
+        if (index === undefined || isNaN(index)) {
             console.error(
-                `Error removing request with index "${indexString}". Invalid index`,
+                `Error removing request with index "${index}". Invalid index`,
             );
             return;
         }
@@ -152,7 +155,7 @@ export class WorkspaceService {
         this._setters.state((prev) => {
             if (index < 0 || index > prev.requests.length) {
                 console.error(
-                    `Error removing request with index "${indexString}". Index out of bounds`,
+                    `Error removing request with index "${index}". Index out of bounds`,
                 );
                 return prev;
             }
@@ -368,6 +371,15 @@ export class WorkspaceService {
         }
     }
 
+    setCurrentRequestById(id: string): void {
+        this._setters.state((prev) => ({
+            ...prev,
+            currentRequest:
+                prev.requests[
+                    prev.requests.findIndex((item) => item.id === id)
+                ],
+        }));
+    }
     setCurrentRequestByIndex(index: number): void {
         this._setters.state((prev) => ({
             ...prev,
@@ -381,8 +393,6 @@ export class WorkspaceService {
     ): void {
         this.#state = state;
         this.#savedState = savedState;
-
-        console.log('state', this.#state);
 
         // We only need to hook up state, not saved state.
         if (this.#state.currentRequest) {
