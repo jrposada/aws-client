@@ -1,10 +1,14 @@
 import { invoke } from '@tauri-apps/api';
 import { open, save } from '@tauri-apps/api/dialog';
+import { t } from 'i18next';
 import { Dispatch, SetStateAction } from 'react';
 import { v4 as uuid } from 'uuid';
 import { rdsSend } from '../../commands/rds';
 import { Request, RequestResult, RequestType } from './request';
-import { t } from 'i18next';
+import { findIndexById } from '../../utils/find-index-by-id';
+import { removeById } from '../../utils/remove-by-id';
+import { updateById } from '../../utils/update-by-id';
+import { findById } from '../../utils/find-by-id';
 
 type WorkspaceServiceSetters = {
     savedState: Dispatch<SetStateAction<WorkspaceServiceState>>;
@@ -14,6 +18,7 @@ type WorkspaceServiceSetters = {
 export type WorkspaceServiceState = {
     currentRequest: Request | undefined;
     filepath: string | undefined;
+    openRequests: Request[];
     requests: Request[];
 };
 
@@ -26,6 +31,7 @@ const extension = 'aws-client';
 export const DEFAULT_STATE: WorkspaceServiceState = {
     currentRequest: undefined,
     filepath: undefined,
+    openRequests: [],
     requests: [],
 };
 
@@ -35,7 +41,14 @@ export class WorkspaceService {
     }
 
     get currentRequestIndex(): number | undefined {
-        return this.#findRequestIndexById(this.#state.currentRequest?.id);
+        if (!this.#state.currentRequest?.id) {
+            return;
+        }
+
+        return findIndexById(
+            this.#state.currentRequest.id,
+            this.#state.openRequests,
+        );
     }
 
     get filepath(): string | undefined {
@@ -55,7 +68,11 @@ export class WorkspaceService {
         );
     }
 
-    get requests() {
+    get openRequests(): Request[] {
+        return this.#state.openRequests;
+    }
+
+    get requests(): Request[] {
         return this.#state.requests;
     }
 
@@ -91,8 +108,36 @@ export class WorkspaceService {
             const next: WorkspaceServiceState = {
                 ...prev,
                 currentRequest: request,
+                openRequests: [...prev.openRequests, request],
                 requests: [...prev.requests, request],
             };
+
+            return next;
+        });
+    }
+
+    /**
+     * Close a request.
+     * @param id Request's ID to remove.
+     */
+    closeRequestById(id: string): void {
+        this._setters.state((prev) => {
+            const next: WorkspaceServiceState = { ...prev };
+
+            // First, remove from open requests if it is open.
+            next.openRequests = removeById(id, prev.openRequests);
+
+            // Second, update current request if it matches IDs.
+            if (prev.currentRequest?.id === id) {
+                const nextCurrentIndex = findIndexById(id, prev.openRequests);
+
+                if (nextCurrentIndex >= next.openRequests.length) {
+                    next.currentRequest =
+                        next.openRequests[next.openRequests.length - 1];
+                } else {
+                    next.currentRequest = next.openRequests[nextCurrentIndex];
+                }
+            }
 
             return next;
         });
@@ -101,7 +146,7 @@ export class WorkspaceService {
     /** Open workspace.
      * @param filepath If not defined then it load internal app state.
      */
-    async load(filepath?: string): Promise<void> {
+    async loadWorkspace(filepath?: string): Promise<void> {
         const stateStr = await invoke<string>('load_app_state', { filepath });
 
         const state = JSON.parse(stateStr) as WorkspaceServiceState;
@@ -126,7 +171,10 @@ export class WorkspaceService {
         }
     }
 
-    async open(): Promise<void> {
+    /**
+     * Prompt user to select a workspace file in their machine and loads it.
+     */
+    async openWorkspace(): Promise<void> {
         const filepath = await open({
             multiple: false,
             title: 'Open',
@@ -137,49 +185,32 @@ export class WorkspaceService {
             return;
         }
 
-        return this.load(filepath as string); // String type checked above.
+        return this.loadWorkspace(filepath as string); // String type checked above.
     }
 
-    removeRequestById(id: string) {
-        this.removeRequestByIndex(this.#findRequestIndexById(id));
-    }
-
-    removeRequestByIndex(index: number | undefined) {
-        if (index === undefined || isNaN(index)) {
-            console.error(
-                `Error removing request with index "${index}". Invalid index`,
-            );
-            return;
-        }
-
+    /**
+     * Remove a request from the workspace.
+     * @param id Request's ID to remove.
+     */
+    removeRequestById(id: string): void {
         this._setters.state((prev) => {
-            if (index < 0 || index > prev.requests.length) {
-                console.error(
-                    `Error removing request with index "${index}". Index out of bounds`,
-                );
-                return prev;
-            }
+            const next: WorkspaceServiceState = { ...prev };
 
-            const next: WorkspaceServiceState = {
-                ...prev,
-                requests: [
-                    ...prev.requests.slice(0, index),
-                    ...prev.requests.slice(index + 1),
-                ],
-            };
+            // First, remove request from workspace requests.
+            next.requests = removeById(id, prev.requests);
 
-            if (prev.currentRequest?.id === prev.requests[index].id) {
-                // Current removed
+            // Second, remove from open requests if it is open.
+            next.openRequests = removeById(id, prev.openRequests);
 
-                const nextCurrentIndex = prev.requests.findIndex(
-                    (item) => item.id === prev.currentRequest?.id,
-                );
+            // Third, update current request if it matches IDs.
+            if (prev.currentRequest?.id === id) {
+                const nextCurrentIndex = findIndexById(id, prev.openRequests);
 
-                if (nextCurrentIndex >= next.requests.length) {
+                if (nextCurrentIndex >= next.openRequests.length) {
                     next.currentRequest =
-                        next.requests[next.requests.length - 1];
+                        next.openRequests[next.openRequests.length - 1];
                 } else {
-                    next.currentRequest = next.requests[nextCurrentIndex];
+                    next.currentRequest = next.openRequests[nextCurrentIndex];
                 }
             }
 
@@ -228,7 +259,6 @@ export class WorkspaceService {
             }
 
             // Update React states
-            // FIXME: we should not use previous values outside of setter
             this._setters.savedState(nextStates);
             this._setters.state(nextStates);
 
@@ -236,6 +266,10 @@ export class WorkspaceService {
         });
     }
 
+    /**
+     * Save current request to current given workspace file.
+     * @param filepath Workspace file
+     */
     async saveCurrent(filepath: string): Promise<void> {
         return new Promise<void>(async (resolve) => {
             const savePromises: Promise<string>[] = [];
@@ -406,39 +440,30 @@ export class WorkspaceService {
 
     #hookRequest(request: Request) {
         const send: Request['send'] = async () => {
-            const requestIndex = this.#findRequestIndexById(request.id);
-
             const result = (await commands[request.requestType](
                 request.data as any,
             )) as RequestResult;
 
-            this.#updateRequestAtIndex(requestIndex, {
-                ...this.#state.requests[requestIndex],
+            this.#updateRequestById(request.id, {
                 result,
             });
         };
 
         const setData: Request['setData'] = (setter) => {
-            const requestIndex = this.#findRequestIndexById(request.id);
-
             const value =
                 typeof setter !== 'function' ? setter : setter(request.data);
 
-            this.#updateRequestAtIndex(requestIndex, {
-                ...this.#state.requests[requestIndex],
+            this.#updateRequestById(request.id, {
                 data: value,
                 isDirty: true,
             });
         };
 
         const setTitle: Request['setTitle'] = (setter) => {
-            const requestIndex = this.#findRequestIndexById(request.id);
-
             const value =
                 typeof setter !== 'function' ? setter : setter(request.title);
 
-            this.#updateRequestAtIndex(requestIndex, {
-                ...request,
+            this.#updateRequestById(request.id, {
                 title: value,
             });
         };
@@ -448,33 +473,28 @@ export class WorkspaceService {
         request.setTitle = setTitle;
     }
 
-    #updateRequestAtIndex(index: number, request: Request) {
+    #updateRequestById(id: string, request: Partial<Request>) {
         this._setters.state((prev) => {
             const next: WorkspaceServiceState = { ...prev };
 
-            if (prev.currentRequest?.id === request.id) {
-                next.currentRequest = request;
-            }
+            // First, update request from workspace requests.
+            next.requests = updateById(id, request, prev.requests);
 
-            next.requests[index] = request;
+            // Second, update open requests if it is open.
+            next.openRequests = updateById(id, request, prev.openRequests);
+
+            // Third, update current request if it matches IDs.
+            if (prev.currentRequest?.id === id) {
+                const currentRequest = findById(id, prev.openRequests);
+                if (currentRequest) {
+                    next.currentRequest = {
+                        ...currentRequest,
+                        ...request,
+                    };
+                }
+            }
 
             return next;
         });
-    }
-
-    #findRequestIndexById<T extends string | undefined>(
-        id: T,
-    ): T extends string ? number : undefined {
-        if (!id) return undefined as T extends string ? number : undefined;
-
-        const requestIndex = this.#state.requests.findIndex(
-            (item) => item.id === id,
-        );
-
-        if (requestIndex < 0) {
-            throw new Error(`Request with id "${id}" not found`);
-        }
-
-        return requestIndex as T extends string ? number : undefined;
     }
 }

@@ -13,7 +13,7 @@ const AppIconButton: FunctionComponent = () => {
     const requestService = useWorkspaceService();
 
     const handleOpen: MouseEventHandler<HTMLLIElement> = () => {
-        requestService.open();
+        requestService.openWorkspace();
     };
 
     const handleSave: MouseEventHandler<HTMLLIElement> = () => {

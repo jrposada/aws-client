@@ -30,7 +30,7 @@ export function useCreateWorkspaceContext() {
             return;
         }
 
-        workspaceService.load().then(() => setSave(true));
+        workspaceService.loadWorkspace().then(() => setSave(true));
     }, [workspaceService, save]);
 
     /** Save every `intervalMs` */
