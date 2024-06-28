@@ -1,18 +1,19 @@
-import HomeIcon from '@mui/icons-material/Home';
 import { Menu, MenuItem } from '@mui/material';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
-import ListItemText from '@mui/material/ListItemText';
-import { t } from 'i18next';
-import { MouseEventHandler, useState } from 'react';
+import { useState } from 'react';
+import { useWorkspaceService } from '../core/hooks/workspace-context/use-workspace-service';
+import DrawerItem, { DrawerItemProps } from './drawer-item';
 
 const DrawerItems: React.FunctionComponent = () => {
+    const workspaceService = useWorkspaceService();
+    const [contextMenuRequestId, setContextMenuRequestId] = useState<string>();
+
     const [contextMenu, setContextMenu] = useState<{
         mouseY: number;
         mouseX: number;
     } | null>(null);
 
-    const handleContextMenu: MouseEventHandler<HTMLElement> = (event) => {
+    const handleContextMenu: DrawerItemProps['onContextMenu'] = (id, event) => {
+        setContextMenuRequestId(id);
         event.preventDefault();
         setContextMenu(
             contextMenu === null
@@ -24,40 +25,34 @@ const DrawerItems: React.FunctionComponent = () => {
         );
     };
 
-    const handleAuroraDbContextMenu: MouseEventHandler<HTMLElement> = (
-        event,
-    ) => {
-        handleContextMenu(event);
-    };
-
-    const handleDynamoDbContextMenu: MouseEventHandler<HTMLElement> = (
-        event,
-    ) => {
-        handleContextMenu(event);
+    const handleClick: DrawerItemProps['onClick'] = (id, _event) => {
+        workspaceService.setCurrentRequestById(id);
     };
 
     const handleClose = () => {
+        setContextMenuRequestId(undefined);
         setContextMenu(null);
     };
 
-    const handleNew = () => {
+    const handleRemove = () => {
+        if (!contextMenuRequestId) return;
+
+        workspaceService.removeRequestById(contextMenuRequestId);
         handleClose();
     };
 
     return (
         <>
-            <ListItemButton onContextMenu={handleAuroraDbContextMenu}>
-                <ListItemIcon>
-                    <HomeIcon />
-                </ListItemIcon>
-                <ListItemText primary={t('navigation.aurora-db')} />
-            </ListItemButton>
-            <ListItemButton onContextMenu={handleDynamoDbContextMenu}>
-                <ListItemIcon>
-                    <HomeIcon />
-                </ListItemIcon>
-                <ListItemText primary={t('navigation.dynamo-db')} />
-            </ListItemButton>
+            {workspaceService.requests.map(({ id, title }) => (
+                <DrawerItem
+                    id={id}
+                    key={id}
+                    onClick={handleClick}
+                    onContextMenu={handleContextMenu}
+                    selected={id === workspaceService.currentRequest?.id}
+                    title={title}
+                />
+            ))}
             <Menu
                 open={contextMenu !== null}
                 onClose={handleClose}
@@ -68,7 +63,7 @@ const DrawerItems: React.FunctionComponent = () => {
                         : undefined
                 }
             >
-                <MenuItem onClick={handleNew}>New</MenuItem>
+                <MenuItem onClick={handleRemove}>Remove</MenuItem>
             </Menu>
         </>
     );

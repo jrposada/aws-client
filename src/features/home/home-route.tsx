@@ -22,7 +22,9 @@ const HomeRoute: FunctionComponent = () => {
     };
 
     const handleClose: ClosableTabProps['onClose'] = (index) => {
-        requestService.removeRequest(index);
+        requestService.closeRequestById(
+            requestService.openRequests[Number(index)].id,
+        );
     };
 
     return (
@@ -44,7 +46,7 @@ const HomeRoute: FunctionComponent = () => {
                         ...sxHeight,
                     }}
                 >
-                    {requestService.requests.map(
+                    {requestService.openRequests.map(
                         ({ id, isDirty, title }, index) => (
                             <ClosableTab
                                 label={
