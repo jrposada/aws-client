@@ -406,13 +406,28 @@ export class WorkspaceService {
     }
 
     setCurrentRequestById(id: string): void {
-        this._setters.state((prev) => ({
-            ...prev,
-            currentRequest:
-                prev.requests[
-                    prev.requests.findIndex((item) => item.id === id)
-                ],
-        }));
+        this._setters.state((prev) => {
+            const next: WorkspaceServiceState = { ...prev };
+
+            let request = findById(id, prev.openRequests);
+            if (!request) {
+                // Need to open request first.
+                request = findById(id, prev.requests);
+
+                if (!request) {
+                    throw new Error(
+                        `Can not set current id. ID "${id}" not found`,
+                    );
+                }
+
+                next.openRequests.push(request);
+            }
+
+            // Second current request
+            next.currentRequest = findById(id, next.openRequests);
+
+            return next;
+        });
     }
     setCurrentRequestByIndex(index: number): void {
         this._setters.state((prev) => ({
