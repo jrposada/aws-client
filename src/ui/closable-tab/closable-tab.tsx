@@ -1,7 +1,6 @@
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import { Box, TabProps } from '@mui/material';
 import { FunctionComponent } from 'react';
-import IconButton from './styled/icon-button';
 import Tab from './styled/tab';
 
 type ClosableTabProps = Omit<TabProps, 'icon' | 'iconPosition'> & {
@@ -21,16 +20,15 @@ const ClosableTab: FunctionComponent<ClosableTabProps> = ({
             label={
                 <>
                     <Box sx={{ pl: 4, pr: 4 }}>{label}</Box>
-                    <IconButton
+                    <CloseRoundedIcon
                         className="close-icon"
+                        fontSize="small"
                         onClick={(e) => {
                             e.stopPropagation();
                             onClose?.(id);
                         }}
-                        size="small"
-                    >
-                        <CloseRoundedIcon fontSize="small" />
-                    </IconButton>
+                        role="button"
+                    />
                 </>
             }
         />
