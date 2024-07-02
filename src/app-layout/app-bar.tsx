@@ -1,7 +1,7 @@
 import { Toolbar, Typography, useTheme } from '@mui/material';
 import { appWindow } from '@tauri-apps/api/window';
-import { MouseEventHandler } from 'react';
-import { useWorkspaceService } from '../core/hooks/workspace-context/use-workspace-service';
+import { MouseEventHandler, useMemo } from 'react';
+import { useWorkspaceFilepath } from '../core/hooks/workspace/use-workspace-filepath';
 import AppIconButton from './app-icon-button';
 import AppWindowButtons from './app-window-buttons';
 import NewButton from './new-button';
@@ -12,9 +12,22 @@ type AppBarProps = {
 };
 
 const AppBar: React.FunctionComponent<AppBarProps> = ({ open }) => {
-    const requestService = useWorkspaceService();
+    const { data: filepath } = useWorkspaceFilepath();
 
     const theme = useTheme();
+
+    const filename = useMemo(() => {
+        const filenameWithExtension = filepath
+            ?.split('/')
+            .pop()
+            ?.split('\\')
+            .pop();
+
+        return filenameWithExtension?.substring(
+            0,
+            filenameWithExtension.lastIndexOf('.'),
+        );
+    }, [filepath]);
 
     const handleAppBarMouseDown: MouseEventHandler = () => {
         appWindow.startDragging();
@@ -59,7 +72,7 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({ open }) => {
                         }}
                         variant="subtitle2"
                     >
-                        {requestService.filename}
+                        {filename}
                     </Typography>
 
                     <AppWindowButtons />

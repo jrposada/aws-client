@@ -1,10 +1,15 @@
 import { Menu, MenuItem } from '@mui/material';
 import { useState } from 'react';
-import { useWorkspaceService } from '../core/hooks/workspace-context/use-workspace-service';
 import DrawerItem, { DrawerItemProps } from './drawer-item';
+import { useRequests } from '../core/hooks/requests/use-requests';
+import { useActiveRequest } from '../core/hooks/requests/use-active-request';
+import { useActiveRequestUpdate } from '../core/hooks/requests/use-active-request-update';
 
 const DrawerItems: React.FunctionComponent = () => {
-    const workspaceService = useWorkspaceService();
+    const { data: requests } = useRequests();
+    const { data: activeRequest } = useActiveRequest();
+    const { mutate: setActiveRequest } = useActiveRequestUpdate();
+
     const [contextMenuRequestId, setContextMenuRequestId] = useState<string>();
 
     const [contextMenu, setContextMenu] = useState<{
@@ -26,7 +31,7 @@ const DrawerItems: React.FunctionComponent = () => {
     };
 
     const handleClick: DrawerItemProps['onClick'] = (id, _event) => {
-        workspaceService.setCurrentRequestById(id);
+        setActiveRequest(id);
     };
 
     const handleClose = () => {
@@ -37,19 +42,20 @@ const DrawerItems: React.FunctionComponent = () => {
     const handleRemove = () => {
         if (!contextMenuRequestId) return;
 
-        workspaceService.removeRequestById(contextMenuRequestId);
+        console.log('TODO');
+        // workspaceService.removeRequestById(contextMenuRequestId);
         handleClose();
     };
 
     return (
         <>
-            {workspaceService.requests.map(({ id, title }) => (
+            {requests?.map(({ id, title }) => (
                 <DrawerItem
                     id={id}
                     key={id}
                     onClick={handleClick}
                     onContextMenu={handleContextMenu}
-                    selected={id === workspaceService.currentRequest?.id}
+                    selected={id === activeRequest?.id}
                     title={title}
                 />
             ))}

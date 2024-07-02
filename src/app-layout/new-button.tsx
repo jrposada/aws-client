@@ -2,12 +2,12 @@ import FileCopyIcon from '@mui/icons-material/FileCopy';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import { Menu, MenuItem } from '@mui/material';
 import { FunctionComponent, MouseEventHandler, useState } from 'react';
-import { useWorkspaceService } from '../core/hooks/workspace-context/use-workspace-service';
 import AppBarButton from './styled/app-bar-button';
+import { useRequestsCreate } from '../core/hooks/requests/use-requests-create';
 
 const NewButton: FunctionComponent = () => {
+    const { mutate: createRequest } = useRequestsCreate();
     const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-    const requestService = useWorkspaceService();
 
     const open = Boolean(anchorEl);
 
@@ -20,7 +20,8 @@ const NewButton: FunctionComponent = () => {
     };
 
     const handleRds: MouseEventHandler<HTMLLIElement> = () => {
-        requestService.addRequest('rds');
+        console.log('create');
+        createRequest('rds');
         handleClose();
     };
 

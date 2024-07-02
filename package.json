@@ -21,6 +21,8 @@
     "@fontsource/roboto": "^5.0.13",
     "@mui/icons-material": "^5.15.18",
     "@mui/material": "^5.15.18",
+    "@tanstack/react-query": "^5.49.2",
+    "@tanstack/react-query-devtools": "^5.49.2",
     "@tanstack/react-router": "^1.34.0",
     "@tanstack/router-devtools": "^1.34.0",
     "@tauri-apps/api": "1.5.6",
