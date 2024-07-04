@@ -46,10 +46,10 @@ const AppWindowButtons: FunctionComponent = () => {
         //     })
         //     .catch((error) => {
         //         console.log(error);
-        //         enqueueAutoHideSnackbar({
-        //             message: 'Auto save failed',
-        //             variant: 'error',
-        //         });
+        enqueueAutoHideSnackbar({
+            message: 'Auto save failed',
+            variant: 'error',
+        });
         //     });
     };
     return (

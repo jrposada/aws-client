@@ -13,6 +13,8 @@ use commands::app_state::{ load_app_state, save_app_state };
 use commands::logger::logger;
 use commands::rds::rds_execute;
 use commands::requests::{
+    delete_open_requests,
+    delete_requests,
     get_active_request,
     get_open_requests,
     get_requests,
@@ -34,6 +36,8 @@ fn main() {
         })
         .invoke_handler(
             tauri::generate_handler![
+                delete_open_requests,
+                delete_requests,
                 get_active_request,
                 get_open_requests,
                 get_requests,

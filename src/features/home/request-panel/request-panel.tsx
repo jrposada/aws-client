@@ -29,10 +29,10 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
         //             });
         //         })
         //         .catch(() => {
-        //             enqueueAutoHideSnackbar({
-        //                 message: 'Could not save request.',
-        //                 variant: 'error',
-        //             });
+        enqueueAutoHideSnackbar({
+            message: 'Could not save request.',
+            variant: 'error',
+        });
         //         });
         // } else {
         //     requestService.saveCurrentAs();

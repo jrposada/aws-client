@@ -2,13 +2,15 @@ import { Menu, MenuItem } from '@mui/material';
 import { useState } from 'react';
 import DrawerItem, { DrawerItemProps } from './drawer-item';
 import { useRequests } from '../core/hooks/requests/use-requests';
-import { useActiveRequest } from '../core/hooks/requests/use-active-request';
-import { useActiveRequestUpdate } from '../core/hooks/requests/use-active-request-update';
+import { useActiveRequest } from '../core/hooks/active-request/use-active-request';
+import { useActiveRequestUpdate } from '../core/hooks/active-request/use-active-request-update';
+import { useRequestsRemove } from '../core/hooks/requests/use-requests-remove';
 
 const DrawerItems: React.FunctionComponent = () => {
     const { data: requests } = useRequests();
     const { data: activeRequest } = useActiveRequest();
     const { mutate: setActiveRequest } = useActiveRequestUpdate();
+    const { mutate: removeRequest } = useRequestsRemove();
 
     const [contextMenuRequestId, setContextMenuRequestId] = useState<string>();
 
@@ -42,8 +44,7 @@ const DrawerItems: React.FunctionComponent = () => {
     const handleRemove = () => {
         if (!contextMenuRequestId) return;
 
-        console.log('TODO');
-        // workspaceService.removeRequestById(contextMenuRequestId);
+        removeRequest(contextMenuRequestId);
         handleClose();
     };
 

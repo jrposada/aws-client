@@ -2,12 +2,12 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api';
 import { Request } from '../workspace-context/request';
 
-export function useActiveRequestUpdate() {
+export function useRequestsRemove() {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: async (id: string) => {
-            const response = await invoke<string>('post_active_request', {
+            const response = await invoke<string>('delete_requests', {
                 id,
             });
 
@@ -15,7 +15,7 @@ export function useActiveRequestUpdate() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ['requests', 'active'],
+                queryKey: ['requests'],
             });
         },
     });

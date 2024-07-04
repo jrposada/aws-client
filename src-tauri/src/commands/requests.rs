@@ -4,6 +4,26 @@ use tauri::State;
 use crate::{ services::app_state::AppState, types::request_type::RequestType };
 
 #[tauri::command]
+pub async fn delete_open_requests<'r>(
+    app_state: State<'r, AppState>,
+    id: &str
+) -> Result<(), String> {
+    info!("delete_open_requests");
+    app_state.remove_open_request(id)?;
+    Ok(())
+}
+
+#[tauri::command]
+pub async fn delete_requests<'r>(
+    app_state: State<'r, AppState>,
+    id: &str
+) -> Result<(), String> {
+    info!("delete_requests");
+    app_state.remove_request(id)?;
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn get_active_request<'r>(
     app_state: State<'r, AppState>
 ) -> Result<String, String> {

@@ -1,14 +1,15 @@
 import CircleIcon from '@mui/icons-material/Circle';
 import { Box, Tabs, TabsProps } from '@mui/material';
 import { FunctionComponent } from 'react';
+import { useActiveRequest } from '../../core/hooks/active-request/use-active-request';
+import { useActiveRequestUpdate } from '../../core/hooks/active-request/use-active-request-update';
+import { useOpenRequests } from '../../core/hooks/open-requests/use-open-requests';
+import { findIndexById } from '../../core/utils/find-index-by-id';
 import ClosableTab, {
     ClosableTabProps,
 } from '../../ui/closable-tab/closable-tab';
 import RequestPanel from './request-panel/request-panel';
-import { useOpenRequests } from '../../core/hooks/requests/use-open-requests';
-import { useActiveRequest } from '../../core/hooks/requests/use-active-request';
-import { findIndexById } from '../../core/utils/find-index-by-id';
-import { useActiveRequestUpdate } from '../../core/hooks/requests/use-active-request-update';
+import { useOpenRequestsRemove } from '../../core/hooks/open-requests/use-open-requests-remove';
 
 const tabHeight = '2rem';
 
@@ -18,8 +19,9 @@ const sxHeight = {
 };
 
 const HomeRoute: FunctionComponent = () => {
-    const { data: openRequests } = useOpenRequests();
     const { data: activeRequest } = useActiveRequest();
+    const { data: openRequests } = useOpenRequests();
+    const { mutate: closeRequest } = useOpenRequestsRemove();
     const { mutate: setActiveRequest } = useActiveRequestUpdate();
 
     const activeRequestIndex = findIndexById(
@@ -33,11 +35,12 @@ const HomeRoute: FunctionComponent = () => {
         setActiveRequest(openRequests[value].id);
     };
 
-    const handleClose: ClosableTabProps['onClose'] = (index) => {
-        console.log('TODO');
-        // requestService.closeRequestById(
-        //     requestService.openRequests[Number(index)].id,
-        // );
+    const handleClose: ClosableTabProps['onClose'] = (indexStr) => {
+        const index = Number(indexStr);
+        if (!openRequests || isNaN(index) || index >= openRequests.length)
+            return;
+
+        closeRequest(openRequests[index].id);
     };
 
     return (

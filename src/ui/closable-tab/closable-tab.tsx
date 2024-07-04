@@ -22,7 +22,6 @@ const ClosableTab: FunctionComponent<ClosableTabProps> = ({
                     <Box sx={{ pl: 4, pr: 4 }}>{label}</Box>
                     <CloseRoundedIcon
                         className="close-icon"
-                        fontSize="small"
                         onClick={(e) => {
                             e.stopPropagation();
                             onClose?.(id);
