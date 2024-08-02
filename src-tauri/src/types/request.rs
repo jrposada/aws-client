@@ -1,9 +1,13 @@
-use super::{ request_result::RequestResult, request_type::RequestType };
+use super::{
+    request_data::RequestData,
+    request_result::RequestResult,
+    request_type::RequestType,
+};
 use serde::{ Deserialize, Serialize };
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Request<TData, TResult> {
-    pub data: TData,
+pub struct Request<TResult> {
+    pub data: RequestData,
     pub id: String,
     pub is_dirty: bool,
     pub request_type: RequestType,

@@ -1,12 +1,12 @@
 use log::info;
 use tauri::State;
 
-use crate::{services::app_state::AppState, types::request_type::RequestType};
+use crate::{ services::app_state::AppState, types::request_type::RequestType };
 
 #[tauri::command]
 pub async fn delete_open_requests<'r>(
     app_state: State<'r, AppState>,
-    id: &str,
+    id: &str
 ) -> Result<(), String> {
     info!(">>> delete_open_requests {:?}", id);
     app_state.remove_open_request(id)?;
@@ -15,7 +15,10 @@ pub async fn delete_open_requests<'r>(
 }
 
 #[tauri::command]
-pub async fn delete_requests<'r>(app_state: State<'r, AppState>, id: &str) -> Result<(), String> {
+pub async fn delete_requests<'r>(
+    app_state: State<'r, AppState>,
+    id: &str
+) -> Result<(), String> {
     info!(">>> delete_requests {:?}", id);
     app_state.remove_request(id)?;
     info!("<<< delete_requests {:?}", id);
@@ -23,10 +26,12 @@ pub async fn delete_requests<'r>(app_state: State<'r, AppState>, id: &str) -> Re
 }
 
 #[tauri::command]
-pub async fn get_active_request<'r>(app_state: State<'r, AppState>) -> Result<String, String> {
+pub async fn get_active_request<'r>(
+    app_state: State<'r, AppState>
+) -> Result<String, String> {
     info!(">>> get_active_request");
     let result = match serde_json::to_string(&app_state.active_request) {
-        Ok(value) => Ok(String::from(value)),
+        Ok(value) => Ok(value.to_string()),
         Err(error) => Err(format!("{:?}", error)),
     };
     info!("<<< get_active_request");
@@ -34,10 +39,12 @@ pub async fn get_active_request<'r>(app_state: State<'r, AppState>) -> Result<St
 }
 
 #[tauri::command]
-pub async fn get_open_requests<'r>(app_state: State<'r, AppState>) -> Result<String, String> {
+pub async fn get_open_requests<'r>(
+    app_state: State<'r, AppState>
+) -> Result<String, String> {
     info!(">>> get_open_requests");
     let result = match serde_json::to_string(&app_state.open_requests) {
-        Ok(value) => Ok(String::from(value)),
+        Ok(value) => Ok(value.to_string()),
         Err(error) => Err(format!("{:?}", error)),
     };
     info!("<<< get_open_requests");
@@ -45,10 +52,12 @@ pub async fn get_open_requests<'r>(app_state: State<'r, AppState>) -> Result<Str
 }
 
 #[tauri::command]
-pub async fn get_requests<'r>(app_state: State<'r, AppState>) -> Result<String, String> {
+pub async fn get_requests<'r>(
+    app_state: State<'r, AppState>
+) -> Result<String, String> {
     info!(">>> get_requests");
     let result = match serde_json::to_string(&app_state.requests) {
-        Ok(value) => Ok(String::from(value)),
+        Ok(value) => Ok(value.to_string()),
         Err(error) => Err(format!("{:?}", error)),
     };
     info!("<<< get_requests");
@@ -58,7 +67,7 @@ pub async fn get_requests<'r>(app_state: State<'r, AppState>) -> Result<String, 
 #[tauri::command]
 pub async fn post_active_request<'r>(
     app_state: State<'r, AppState>,
-    id: &str,
+    id: &str
 ) -> Result<(), String> {
     info!(">>> post_active_request {:?}", id);
     app_state.set_active_request(id)?;
@@ -70,9 +79,10 @@ pub async fn post_active_request<'r>(
 pub async fn post_requests<'r>(
     app_state: State<'r, AppState>,
     request_type: &str,
+    title: &str
 ) -> Result<(), String> {
     info!(">>> post_requests {:?}", request_type);
-    app_state.add_request(request_type.parse::<RequestType>()?)?;
+    app_state.add_request(request_type.parse::<RequestType>()?, title)?;
     info!("<<< post_requests {:?}", request_type);
     return Ok(());
 }
@@ -81,14 +91,16 @@ pub async fn post_requests<'r>(
 pub async fn put_requests<'r>(
     app_state: State<'r, AppState>,
     id: &str,
-    title: &str,
+    title: &str
 ) -> Result<String, String> {
     info!(">>> put_requests {:?}", id);
 
-    let result = match serde_json::to_string(&app_state.requests) {
-        Ok(value) => Ok(String::from(value)),
+    let request = app_state.update_request(id, title)?;
+    let result = match serde_json::to_string(&request) {
+        Ok(value) => Ok(value.to_string()),
         Err(error) => Err(format!("{:?}", error)),
     };
+
     info!("<<< put_requests {:?}", id);
     return result;
 }

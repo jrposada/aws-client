@@ -5,7 +5,7 @@ import {
     FunctionComponent,
     MouseEventHandler,
 } from 'react';
-import { RdsRequest } from '../../../core/commands/rds';
+import { Request } from '../../../core/types/request';
 import ResponseViewport from '../../home/response-viewport/response-viewport';
 import TextEditor, {
     TextEditorProps,
@@ -13,52 +13,56 @@ import TextEditor, {
 import RdsResult from '../rds-result/rds-result';
 
 type RdsPanelProps = {
-    onSend: MouseEventHandler<HTMLButtonElement>;
-    request: RdsRequest;
+    request: Request<'rds'>;
 };
 
-const RdsPanel: FunctionComponent<RdsPanelProps> = ({ onSend, request }) => {
+const RdsPanel: FunctionComponent<RdsPanelProps> = ({ request }) => {
     const handleClusterArnChange: ChangeEventHandler<HTMLInputElement> = (
-        event,
+        _event,
     ) => {
-        request.setData((prev) => ({
-            ...prev,
-            clusterArn: event.target.value,
-        }));
+        // request.setData((prev) => ({
+        //     ...prev,
+        //     clusterArn: event.target.value,
+        // }));
     };
 
     const handleDatabaseChange: ChangeEventHandler<HTMLInputElement> = (
-        event,
+        _event,
     ) => {
-        request.setData((prev) => ({
-            ...prev,
-            database: event.target.value,
-        }));
+        // request.setData((prev) => ({
+        //     ...prev,
+        //     database: event.target.value,
+        // }));
     };
 
     const handleProfileNameChange: ChangeEventHandler<HTMLInputElement> = (
-        event,
+        _event,
     ) => {
-        request.setData((prev) => ({
-            ...prev,
-            profileName: event.target.value,
-        }));
+        // request.setData((prev) => ({
+        //     ...prev,
+        //     profileName: event.target.value,
+        // }));
     };
 
-    const handleQueryChange: TextEditorProps['onChange'] = (next) => {
-        request.setData((prev) => ({
-            ...prev,
-            query: next,
-        }));
+    const handleQueryChange: TextEditorProps['onChange'] = (_next) => {
+        // request.setData((prev) => ({
+        //     ...prev,
+        //     query: next,
+        // }));
     };
 
     const handleSecretArnChange: ChangeEventHandler<HTMLInputElement> = (
-        event,
+        _event,
     ) => {
-        request.setData((prev) => ({
-            ...prev,
-            secretArn: event.target.value,
-        }));
+        // request.setData((prev) => ({
+        //     ...prev,
+        //     secretArn: event.target.value,
+        // }));
+    };
+
+    const handleSend: MouseEventHandler<HTMLButtonElement> = () => {
+        // request.send();
+        console.log('TODO');
     };
 
     return (
@@ -75,36 +79,36 @@ const RdsPanel: FunctionComponent<RdsPanelProps> = ({ onSend, request }) => {
                 <TextField
                     label={t('rds-request.database')}
                     onChange={handleDatabaseChange}
-                    value={request.data.database}
+                    value={request.data.rds.database}
                     variant="outlined"
                 />
                 <TextField
                     label={t('rds-request.cluster-arn')}
                     onChange={handleClusterArnChange}
-                    value={request.data.clusterArn}
+                    value={request.data.rds.cluster_arn}
                     variant="outlined"
                 />
                 <TextField
                     label={t('rds-request.secret-arn')}
                     onChange={handleSecretArnChange}
-                    value={request.data.secretArn}
+                    value={request.data.rds.secret_arn}
                     variant="outlined"
                 />
                 <TextField
                     label={t('rds-request.profile-name')}
                     onChange={handleProfileNameChange}
-                    value={request.data.profileName}
+                    value={request.data.profile_name}
                     variant="outlined"
                 />
                 <Button
                     variant="contained"
-                    onClick={onSend}
+                    onClick={handleSend}
                     disabled={
-                        !request.data.clusterArn ||
-                        !request.data.database ||
-                        !request.data.profileName ||
-                        !request.data.query ||
-                        !request.data.secretArn
+                        !request.data.rds.cluster_arn ||
+                        !request.data.rds.database ||
+                        !request.data.profile_name ||
+                        !request.data.rds.query ||
+                        !request.data.rds.secret_arn
                     }
                     sx={{
                         ml: 'auto',
@@ -114,7 +118,7 @@ const RdsPanel: FunctionComponent<RdsPanelProps> = ({ onSend, request }) => {
                 </Button>
             </Toolbar>
             <TextEditor
-                value={request.data.query ?? ''}
+                value={request.data.rds.query ?? ''}
                 onChange={handleQueryChange}
             />
             <ResponseViewport>

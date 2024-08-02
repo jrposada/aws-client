@@ -62,7 +62,7 @@ const HomeRoute: FunctionComponent = () => {
                         ...sxHeight,
                     }}
                 >
-                    {openRequests?.map(({ id, isDirty, title }, index) => (
+                    {openRequests?.map(({ id, is_dirty, title }, index) => (
                         <ClosableTab
                             label={
                                 <Box
@@ -73,7 +73,7 @@ const HomeRoute: FunctionComponent = () => {
                                     }}
                                 >
                                     {title}
-                                    {isDirty && (
+                                    {is_dirty && (
                                         <span style={{ fontSize: '0.5rem' }}>
                                             <CircleIcon fontSize="inherit" />
                                         </span>

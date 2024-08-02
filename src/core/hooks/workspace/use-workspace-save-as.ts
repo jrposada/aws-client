@@ -1,14 +1,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api';
 import useSnackbar from '../../../ui/snackbar/use-snackbar';
-import { Request } from '../workspace-context/request';
+import { Request } from '../../types/request';
 
 type UseWorkspaceSaveAsParams = {
     onError?: (message: string) => void;
     onSuccess?: () => void;
 };
 
-export function useWorkspaceSaveAs({ onError, onSuccess }: UseWorkspaceSaveAsParams = {}) {
+export function useWorkspaceSaveAs({
+    onError,
+    onSuccess,
+}: UseWorkspaceSaveAsParams = {}) {
     const queryClient = useQueryClient();
     const { enqueueAutoHideSnackbar } = useSnackbar();
 

@@ -1,15 +1,14 @@
 {
-  "translation": {
-    "new": "New",
-    "open": "Open",
-    "rds-request.cluster-arn": "Cluster ARN",
-    "rds-request.database": "Database",
-    "rds-request.profile-name": "Profile Name",
-    "workspace-service.new": "New {{type}}",
-    "rds-request.secret-arn": "Secret ARN",
-    "response-viewport.placeholder": "No result",
-    "save-as": "Save as...",
-    "save": "Save",
-    "side-menu.calculator": "Calculator"
-  }
+  "new-request-title": "New Request: {{type}}",
+  "new": "New",
+  "open": "Open",
+  "rds-request.cluster-arn": "Cluster ARN",
+  "rds-request.database": "Database",
+  "rds-request.profile-name": "Profile Name",
+  "rds-request.secret-arn": "Secret ARN",
+  "response-viewport.placeholder": "No result",
+  "save-as": "Save as...",
+  "save": "Save",
+  "side-menu.calculator": "Calculator",
+  "workspace-service.new": "New {{type}}"
 }

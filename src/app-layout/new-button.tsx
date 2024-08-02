@@ -20,7 +20,6 @@ const NewButton: FunctionComponent = () => {
     };
 
     const handleRds: MouseEventHandler<HTMLLIElement> = () => {
-        console.log('create');
         createRequest('rds');
         handleClose();
     };

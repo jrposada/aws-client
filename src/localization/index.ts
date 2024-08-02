@@ -1,7 +1,9 @@
 import en from './en.json';
 
 const resources = {
-    en,
+    en: {
+        translation: en,
+    },
 };
 
 export default resources;

@@ -1,24 +1,23 @@
 import { FunctionComponent, useMemo } from 'react';
-import { RdsSendResult } from '../../../core/commands/rds';
-import { RequestResult } from '../../../core/hooks/workspace-context/request';
 import Table, { TableProps } from '../../../ui/table/table';
+import { Request } from '../../../core/types/request';
 
 type RdsResultProps = {
-    data: RequestResult<RdsSendResult>;
+    data: NonNullable<Request<'rds'>['result']>;
 };
 
 const RdsResult: FunctionComponent<RdsResultProps> = ({ data }) => {
     const columnDefinitions = useMemo<TableProps['columnDefs']>(
         () =>
-            Object.keys(data?.data?.[0] ?? {}).map((field) => ({
+            Object.keys(data.rds?.[0] ?? {}).map((field) => ({
                 field,
                 headerName: field,
             })),
-        [data.data],
+        [data.rds],
     );
     return (
         <>
-            <Table columnDefs={columnDefinitions} rowData={data.data} />
+            <Table columnDefs={columnDefinitions} rowData={data.rds} />
         </>
     );
 };

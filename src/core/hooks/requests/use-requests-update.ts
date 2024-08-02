@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api';
 import useSnackbar from '../../../ui/snackbar/use-snackbar';
-import { Request } from '../workspace-context/request';
+import { Request } from '../../types/request';
 
 type UseRequestsUpdateParams = {
     onError?: (message: string) => void;
@@ -9,19 +9,27 @@ type UseRequestsUpdateParams = {
 };
 
 type UseRequestsUpdateMutationParams = {
-    id: string,
-    data: string,
-}
+    id: string;
+    title: string;
+};
 
-export function useRequestsUpdate({ onError, onSuccess }: UseRequestsUpdateParams = {}) {
+export function useRequestsUpdate({
+    onError,
+    onSuccess,
+}: UseRequestsUpdateParams = {}) {
     const queryClient = useQueryClient();
     const { enqueueAutoHideSnackbar } = useSnackbar();
 
-    return useMutation<Request, string, UseRequestsUpdateMutationParams, unknown>({
-        mutationFn: async ({ id, data }) => {
+    return useMutation<
+        Request,
+        string,
+        UseRequestsUpdateMutationParams,
+        unknown
+    >({
+        mutationFn: async ({ id, title }) => {
             const response = await invoke<string>('put_requests', {
                 id,
-                title: data
+                title,
             });
 
             return JSON.parse(response) as Request;
@@ -35,10 +43,7 @@ export function useRequestsUpdate({ onError, onSuccess }: UseRequestsUpdateParam
         },
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ['requests', 'open'],
-            });
-            queryClient.invalidateQueries({
-                queryKey: ['requests', 'active'],
+                queryKey: ['requests'],
             });
 
             onSuccess?.();

@@ -1,14 +1,17 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api';
 import useSnackbar from '../../../ui/snackbar/use-snackbar';
-import { Request } from '../workspace-context/request';
+import { Request } from '../../types/request';
 
 type UseRequestsRemoveParams = {
     onError?: (message: string) => void;
     onSuccess?: () => void;
 };
 
-export function useRequestsRemove({ onError, onSuccess }: UseRequestsRemoveParams = {}) {
+export function useRequestsRemove({
+    onError,
+    onSuccess,
+}: UseRequestsRemoveParams = {}) {
     const queryClient = useQueryClient();
     const { enqueueAutoHideSnackbar } = useSnackbar();
 

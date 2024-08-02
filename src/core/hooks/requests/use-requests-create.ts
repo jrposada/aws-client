@@ -1,14 +1,19 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api';
+import { t } from 'i18next';
 import useSnackbar from '../../../ui/snackbar/use-snackbar';
-import { Request, RequestType } from '../workspace-context/request';
+import { Request } from '../../types/request';
+import { RequestType } from '../../types/request-type';
 
 type UseRequestsCreateParams = {
     onError?: (message: string) => void;
     onSuccess?: () => void;
 };
 
-export function useRequestsCreate({ onError, onSuccess }: UseRequestsCreateParams = {}) {
+export function useRequestsCreate({
+    onError,
+    onSuccess,
+}: UseRequestsCreateParams = {}) {
     const queryClient = useQueryClient();
     const { enqueueAutoHideSnackbar } = useSnackbar();
 
@@ -16,6 +21,9 @@ export function useRequestsCreate({ onError, onSuccess }: UseRequestsCreateParam
         mutationFn: async (requestType: RequestType) => {
             const response = await invoke<string>('post_requests', {
                 requestType,
+                title: t('new-request-title', {
+                    type: requestType.toUpperCase(),
+                }),
             });
 
             return JSON.parse(response) as Request[];

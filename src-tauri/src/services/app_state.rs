@@ -1,5 +1,5 @@
 use log::info;
-use serde::{Deserialize, Serialize};
+use serde::{ Deserialize, Serialize };
 use serde_json::Value;
 use std::fs::File;
 use std::sync::Mutex;
@@ -10,7 +10,9 @@ use std::io::Write;
 // use tauri::{ api::path::app_data_dir, AppHandle };
 
 use crate::types::{
-    request::Request, request_data::RequestData, request_result::RequestResult,
+    request::Request,
+    request_data::RequestData,
+    request_result::RequestResult,
     request_type::RequestType,
 };
 
@@ -19,52 +21,55 @@ const EXTENSION: &str = ".aws-client";
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SavedAppState {
     /** According state write to file system, request currently active in the frontend. */
-    pub saved_active_request: Option<Request<RequestData, RequestResult<Value>>>,
+    pub saved_active_request: Option<Request<RequestResult<Value>>>,
+
     /** According state write to file system, filepath of this file. */
     pub saved_filepath: Option<String>,
 
     /** According state write to file system, open requests in the frontend. */
-    pub saved_open_requests: Vec<Request<RequestData, RequestResult<Value>>>,
+    pub saved_open_requests: Vec<Request<RequestResult<Value>>>,
 
     /** According state write to file system, complete list of all requests in the workspace. */
-    pub saved_requests: Vec<Request<RequestData, RequestResult<Value>>>,
+    pub saved_requests: Vec<Request<RequestResult<Value>>>,
 
     /** According state in memory, request currently active in the frontend. */
-    pub active_request: Option<Request<RequestData, RequestResult<Value>>>,
+    pub active_request: Option<Request<RequestResult<Value>>>,
+
     /** According state in memory, filepath of this file. */
     pub filepath: Option<String>,
 
     /** According state in memory, open requests in the frontend. */
-    pub open_requests: Vec<Request<RequestData, RequestResult<Value>>>,
+    pub open_requests: Vec<Request<RequestResult<Value>>>,
 
     /** According state in memory, complete list of all requests in the workspace. */
-    pub requests: Vec<Request<RequestData, RequestResult<Value>>>,
+    pub requests: Vec<Request<RequestResult<Value>>>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AppState {
     /** According state write to file system, request currently active in the frontend. */
-    pub saved_active_request: Mutex<Option<Request<RequestData, RequestResult<Value>>>>,
+    pub saved_active_request: Mutex<Option<Request<RequestResult<Value>>>>,
 
     /** According state write to file system, filepath of this file. */
     pub saved_filepath: Mutex<Option<String>>,
 
     /** According state write to file system, open requests in the frontend. */
-    pub saved_open_requests: Mutex<Vec<Request<RequestData, RequestResult<Value>>>>,
+    pub saved_open_requests: Mutex<Vec<Request<RequestResult<Value>>>>,
 
     /** According state write to file system, complete list of all requests in the workspace. */
-    pub saved_requests: Mutex<Vec<Request<RequestData, RequestResult<Value>>>>,
+    pub saved_requests: Mutex<Vec<Request<RequestResult<Value>>>>,
 
     /** According state in memory, request currently active in the frontend. */
-    pub active_request: Mutex<Option<Request<RequestData, RequestResult<Value>>>>,
+    pub active_request: Mutex<Option<Request<RequestResult<Value>>>>,
+
     /** According state in memory, filepath of this file. */
     pub filepath: Mutex<Option<String>>,
 
     /** According state in memory, open requests in the frontend. */
-    pub open_requests: Mutex<Vec<Request<RequestData, RequestResult<Value>>>>,
+    pub open_requests: Mutex<Vec<Request<RequestResult<Value>>>>,
 
     /** According state in memory, complete list of all requests in the workspace. */
-    pub requests: Mutex<Vec<Request<RequestData, RequestResult<Value>>>>,
+    pub requests: Mutex<Vec<Request<RequestResult<Value>>>>,
 }
 
 impl AppState {
@@ -82,22 +87,22 @@ impl AppState {
         }
     }
 
-    pub fn add_request(&self, request_type: RequestType) -> Result<(), String> {
+    pub fn add_request(
+        &self,
+        request_type: RequestType,
+        title: &str
+    ) -> Result<(), String> {
         info!(">>> AppState.add_request {:?}", request_type);
 
         let id = Uuid::new_v4().to_string();
-        // TODO move title to frontend so that it can be localized.
-        let title = format!("New Request: {:?}", request_type);
 
-        let request: Request<RequestData, RequestResult<Value>> = Request {
-            data: RequestData {
-                profile_name: Default::default(),
-            },
+        let request: Request<RequestResult<Value>> = Request {
+            data: RequestData::new(request_type),
             id,
             is_dirty: true,
             request_type,
             result: None,
-            title,
+            title: title.to_string(),
         };
 
         // Add to requests
@@ -127,7 +132,10 @@ impl AppState {
 
         // First, remove from open requests if it is open.
         let mut open_requests_guard = self.open_requests.lock().unwrap();
-        if let Some(open_request_index) = open_requests_guard.iter().position(|item| item.id == id)
+        if
+            let Some(open_request_index) = open_requests_guard
+                .iter()
+                .position(|item| item.id == id)
         {
             info!("--- AppState.remove_open_request remove");
             open_requests_guard.remove(open_request_index);
@@ -148,7 +156,9 @@ impl AppState {
                     *active_request = last_request.clone();
                 } else {
                     // If there is no last request, we should clear the active_request
-                    info!("--- AppState.remove_open_request no candidate for active");
+                    info!(
+                        "--- AppState.remove_open_request no candidate for active"
+                    );
                     *active_request_guard = None;
                 }
                 drop(open_requests_guard);
@@ -184,7 +194,7 @@ impl AppState {
 
         info!("--- AppState.save_as set filepath");
         let mut filepath_guard = self.filepath.lock().unwrap();
-        *filepath_guard = Some(String::from(filepath));
+        *filepath_guard = Some(filepath.to_string());
         drop(filepath_guard);
 
         self.save()?;
@@ -213,30 +223,48 @@ impl AppState {
         }
         drop(requests_guard);
 
-        info!("--- AppState.save set `isDirty` flags to false for open requests");
+        info!(
+            "--- AppState.save set `isDirty` flags to false for open requests"
+        );
         let mut open_requests_guard = self.open_requests.lock().unwrap();
         for open_request in open_requests_guard.iter_mut() {
             open_request.is_dirty = false;
         }
         drop(open_requests_guard);
 
-        info!("--- AppState.save set `isDirty` flags to false for active request");
+        info!(
+            "--- AppState.save set `isDirty` flags to false for active request"
+        );
         let mut active_request_guard = self.active_request.lock().unwrap();
         if let Some(ref mut active_request) = *active_request_guard {
             active_request.is_dirty = false;
         }
         drop(active_request_guard);
 
-        info!("--- AppState.save copy memory state to saved state: active request");
+        info!(
+            "--- AppState.save copy memory state to saved state: active request"
+        );
         {
-            let mut saved_active_request_guard = self.saved_active_request.lock().unwrap();
-            *saved_active_request_guard = self.active_request.lock().unwrap().clone();
+            let mut saved_active_request_guard = self.saved_active_request
+                .lock()
+                .unwrap();
+            *saved_active_request_guard = self.active_request
+                .lock()
+                .unwrap()
+                .clone();
         }
 
-        info!("--- AppState.save copy memory state to saved state: open requests");
+        info!(
+            "--- AppState.save copy memory state to saved state: open requests"
+        );
         {
-            let mut saved_open_requests_guard = self.saved_open_requests.lock().unwrap();
-            *saved_open_requests_guard = self.open_requests.lock().unwrap().clone();
+            let mut saved_open_requests_guard = self.saved_open_requests
+                .lock()
+                .unwrap();
+            *saved_open_requests_guard = self.open_requests
+                .lock()
+                .unwrap()
+                .clone();
         }
 
         info!("--- AppState.save copy memory state to saved state: requests");
@@ -251,9 +279,15 @@ impl AppState {
         if let Some(ref filepath) = *filepath_guard {
             info!("--- AppState.save lock state");
             let saved_state = SavedAppState {
-                saved_active_request: self.saved_active_request.lock().unwrap().clone(),
+                saved_active_request: self.saved_active_request
+                    .lock()
+                    .unwrap()
+                    .clone(),
                 saved_filepath: self.saved_filepath.lock().unwrap().clone(),
-                saved_open_requests: self.saved_open_requests.lock().unwrap().clone(),
+                saved_open_requests: self.saved_open_requests
+                    .lock()
+                    .unwrap()
+                    .clone(),
                 saved_requests: self.saved_requests.lock().unwrap().clone(),
                 active_request: self.active_request.lock().unwrap().clone(),
                 filepath: filepath_guard.clone(),
@@ -276,7 +310,7 @@ impl AppState {
     pub fn save_active_as(&self, filepath: &str) -> Result<(), String> {
         // Update flag for active
         let mut filepath_guard = self.filepath.lock().unwrap();
-        *filepath_guard = Some(String::from(filepath));
+        *filepath_guard = Some(filepath.to_string());
         drop(filepath_guard);
 
         self.save_active()?;
@@ -342,12 +376,66 @@ impl AppState {
         //         return next;
     }
 
+    pub fn update_request(
+        &self,
+        id: &str,
+        title: &str
+    ) -> Result<Request<RequestResult<Value>>, String> {
+        info!(">>> AppState.update_request {:?}", id);
+
+        let mut _updated_request: Option<Request<RequestResult<Value>>> = None;
+
+        info!("--- AppState.update_request update in requests");
+        let mut requests_guard = self.requests.lock().unwrap();
+        match requests_guard.iter_mut().find(|item| item.id == id) {
+            Some(request) => {
+                request.title = title.to_string();
+                _updated_request = Some(request.clone());
+            }
+            None => {
+                return Err(format!("Could not find request {:?}", id));
+            }
+        }
+        drop(requests_guard);
+
+        info!("--- AppState.update_request update in open requests if open");
+        let mut open_requests_guard = self.open_requests.lock().unwrap();
+        match open_requests_guard.iter_mut().find(|item| item.id == id) {
+            Some(request) => {
+                request.title = title.to_string();
+            }
+            None => {}
+        }
+        drop(open_requests_guard);
+
+        info!(
+            "--- AppState.update_request update in update active requests if active"
+        );
+        let mut active_request_guard = self.active_request.lock().unwrap();
+        match *active_request_guard {
+            Some(ref mut active_request) => {
+                if active_request.id == id {
+                    active_request.title = title.to_string();
+                }
+            }
+            None => {}
+        }
+        drop(active_request_guard);
+
+        let result = match _updated_request {
+            Some(request) => Ok(request),
+            None => Err(format!("Could not find request {:?}", id)),
+        };
+
+        info!("<<< AppState.update_request {:?}", id);
+        return result;
+    }
+
     fn save_to_file(filepath: &str, state: &str) -> Result<(), String> {
         info!(">>> AppState.save_to_file {:?}", filepath);
 
         let mut file = File::create(filepath).map_err(|e| e.to_string())?;
-        file.write_all(state.as_bytes())
-            .map_err(|e| e.to_string())?;
+        file.write_all(state.as_bytes()).map_err(|e| e.to_string())?;
 
         info!("<<< AppState.save_to_file {:?}", filepath);
         return Ok(());

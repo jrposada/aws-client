@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api';
 import useSnackbar from '../../../ui/snackbar/use-snackbar';
-import { Request } from '../workspace-context/request';
+import { Request } from '../../types/request';
 
 type UseWorkspaceSaveActiveParams = {
     onError?: (message: string) => void;
@@ -39,7 +39,6 @@ export function useWorkspaceSaveActive({
 
             onSuccess?.();
         },
-
     });
 }
 export type { UseWorkspaceSaveActiveParams };

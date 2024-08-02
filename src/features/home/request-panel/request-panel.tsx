@@ -5,9 +5,8 @@ import {
     FunctionComponent,
     MouseEventHandler,
 } from 'react';
-import { RdsRequest } from '../../../core/commands/rds';
 import { useRequestsUpdate } from '../../../core/hooks/requests/use-requests-update';
-import { Request } from '../../../core/hooks/workspace-context/request';
+import { Request } from '../../../core/types/request';
 import { useWorkspaceFilepath } from '../../../core/hooks/workspace/use-workspace-filepath';
 import { useWorkspaceSaveActive } from '../../../core/hooks/workspace/use-workspace-save-active';
 import { useWorkspaceSaveActiveAs } from '../../../core/hooks/workspace/use-workspace-save-active-as';
@@ -22,7 +21,7 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
     const { data: filepath } = useWorkspaceFilepath();
     const { mutate: saveActive } = useWorkspaceSaveActive();
     const { mutate: saveActiveAs } = useWorkspaceSaveActiveAs();
-    const { mutate: setTitle } = useRequestsUpdate();
+    const { mutate: updateRequest } = useRequestsUpdate();
 
     const handleSave: MouseEventHandler<HTMLButtonElement> = async () => {
         if (filepath) {
@@ -35,13 +34,8 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
         }
     };
 
-    const handleSend: MouseEventHandler<HTMLButtonElement> = () => {
-        // request.send();
-        console.log('TODO');
-    };
-
     const handleTitleChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-        setTitle({ id: request.id, data: event.target.value });
+        updateRequest({ id: request.id, title: event.target.value });
     };
 
     return (
@@ -75,18 +69,15 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
                         }}
                     />
                     <Button
-                        disabled={!request.isDirty}
+                        disabled={!request.is_dirty}
                         onClick={handleSave}
                         sx={{ ml: 'auto' }}
                     >
                         {t('save')}
                     </Button>
                 </Toolbar>
-                {request.requestType === 'rds' ? (
-                    <RdsPanel
-                        onSend={handleSend}
-                        request={request as unknown as RdsRequest}
-                    />
+                {request.request_type === 'rds' ? (
+                    <RdsPanel request={request} />
                 ) : (
                     <></>
                 )}

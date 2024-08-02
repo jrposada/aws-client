@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api';
-import { Request } from '../workspace-context/request';
+import { Request } from '../../types/request';
 
 export function useRequests() {
     return useQuery({
