@@ -3,37 +3,42 @@ import { invoke } from '@tauri-apps/api';
 import useSnackbar from '../../../ui/snackbar/use-snackbar';
 import { Request } from '../workspace-context/request';
 
-type UseWorkspaceSaveAsParams = {
+type UseRequestsUpdateParams = {
     onError?: (message: string) => void;
     onSuccess?: () => void;
 };
 
-export function useWorkspaceSaveAs({ onError, onSuccess }: UseWorkspaceSaveAsParams = {}) {
+type UseRequestsUpdateMutationParams = {
+    id: string,
+    data: string,
+}
+
+export function useRequestsUpdate({ onError, onSuccess }: UseRequestsUpdateParams = {}) {
     const queryClient = useQueryClient();
     const { enqueueAutoHideSnackbar } = useSnackbar();
 
-    return useMutation<Request[], string, string, unknown>({
-        mutationFn: async (filepath: string) => {
-            const response = await invoke<string>('post_workspace_save_as', {
-                filepath,
+    return useMutation<Request, string, UseRequestsUpdateMutationParams, unknown>({
+        mutationFn: async ({ id, data }) => {
+            const response = await invoke<string>('put_requests', {
+                id,
+                title: data
             });
 
-            return JSON.parse(response) as Request[];
+            return JSON.parse(response) as Request;
         },
         onError: (message) => {
             enqueueAutoHideSnackbar({
-                message: `Could not save workspace. ${message}`,
+                message: `Could could update request. ${message}`,
                 variant: 'error',
             });
             onError?.(message);
         },
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ['workspace'],
+                queryKey: ['requests', 'open'],
             });
-
             queryClient.invalidateQueries({
-                queryKey: ['requests'],
+                queryKey: ['requests', 'active'],
             });
 
             onSuccess?.();

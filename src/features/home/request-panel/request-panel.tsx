@@ -6,12 +6,12 @@ import {
     MouseEventHandler,
 } from 'react';
 import { RdsRequest } from '../../../core/commands/rds';
+import { useRequestsUpdate } from '../../../core/hooks/requests/use-requests-update';
 import { Request } from '../../../core/hooks/workspace-context/request';
 import { useWorkspaceFilepath } from '../../../core/hooks/workspace/use-workspace-filepath';
 import { useWorkspaceSaveActive } from '../../../core/hooks/workspace/use-workspace-save-active';
 import { useWorkspaceSaveActiveAs } from '../../../core/hooks/workspace/use-workspace-save-active-as';
 import { saveAsDialog } from '../../../core/utils/system-dialog';
-import useSnackbar from '../../../ui/snackbar/use-snackbar';
 import RdsPanel from '../../rds/rds-panel/rds-panel';
 
 type RequestPanelProps = {
@@ -19,23 +19,10 @@ type RequestPanelProps = {
 };
 
 const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
-    const { enqueueAutoHideSnackbar } = useSnackbar();
     const { data: filepath } = useWorkspaceFilepath();
     const { mutate: saveActive } = useWorkspaceSaveActive();
-    const { mutate: saveActiveAs } = useWorkspaceSaveActiveAs({
-        onError: () => {
-            enqueueAutoHideSnackbar({
-                message: 'Could not save request.',
-                variant: 'error',
-            });
-        },
-        onSuccess: () => {
-            enqueueAutoHideSnackbar({
-                message: 'Requests saved.',
-                variant: 'success',
-            });
-        },
-    });
+    const { mutate: saveActiveAs } = useWorkspaceSaveActiveAs();
+    const { mutate: setTitle } = useRequestsUpdate();
 
     const handleSave: MouseEventHandler<HTMLButtonElement> = async () => {
         if (filepath) {
@@ -49,11 +36,12 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
     };
 
     const handleSend: MouseEventHandler<HTMLButtonElement> = () => {
-        request.send();
+        // request.send();
+        console.log('TODO');
     };
 
     const handleTitleChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-        request.setTitle(event.target.value);
+        setTitle({ id: request.id, data: event.target.value });
     };
 
     return (

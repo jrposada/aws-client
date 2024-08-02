@@ -1,5 +1,3 @@
-import { Dispatch, SetStateAction } from 'react';
-
 export type RequestType = 'rds';
 
 export type RequestData = {
@@ -20,8 +18,5 @@ export type Request<
     isDirty: boolean;
     requestType: RequestType;
     result?: RequestResult<TResult>;
-    send: () => Promise<void>;
-    setData: Dispatch<SetStateAction<TData>>;
-    setTitle: Dispatch<SetStateAction<string>>;
     title: string;
 };

@@ -19,6 +19,7 @@ use commands::requests::{
     get_requests,
     post_active_request,
     post_requests,
+    put_requests,
 };
 use commands::workspace::{
     get_workspace_filepath,
@@ -50,6 +51,7 @@ fn main() {
                 post_workspace_save_active,
                 post_workspace_save_as,
                 post_workspace_save,
+                put_requests,
                 rds_execute,
                 save_app_state
             ]

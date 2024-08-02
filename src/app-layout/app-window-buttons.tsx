@@ -6,11 +6,10 @@ import { SvgIconTypeMap } from '@mui/material';
 import { DefaultComponentProps } from '@mui/material/OverridableComponent';
 import { appWindow } from '@tauri-apps/api/window';
 import { FunctionComponent, MouseEventHandler, useState } from 'react';
-import useSnackbar from '../ui/snackbar/use-snackbar';
+import { useWorkspaceSave } from '../core/hooks/workspace/use-workspace-save';
 import AppWindowButton, {
     AppWindowButtonProps,
 } from './styled/app-window-button';
-import { useWorkspaceSave } from '../core/hooks/workspace/use-workspace-save';
 
 const closeOnErrorMs = 2000;
 
@@ -23,16 +22,11 @@ const iconProps: DefaultComponentProps<SvgIconTypeMap<{}, 'svg'>> = {
 };
 
 const AppWindowButtons: FunctionComponent = () => {
-    const { enqueueAutoHideSnackbar } = useSnackbar();
     const { mutate: save } = useWorkspaceSave({
         onSuccess: () => {
             appWindow.close();
         },
         onError: () => {
-            enqueueAutoHideSnackbar({
-                message: `Auto save failed, app will close in ${closeOnErrorMs / 1000} seconds`,
-                variant: 'error',
-            });
             setTimeout(() => void appWindow.close(), closeOnErrorMs);
         },
     });

@@ -1,11 +1,18 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api';
+import useSnackbar from '../../../ui/snackbar/use-snackbar';
 import { Request } from '../workspace-context/request';
 
-export function useOpenRequestsRemove() {
-    const queryClient = useQueryClient();
+type UseOpenRequestsRemoveParams = {
+    onError?: (message: string) => void;
+    onSuccess?: () => void;
+};
 
-    return useMutation({
+export function useOpenRequestsRemove({ onError, onSuccess }: UseOpenRequestsRemoveParams = {}) {
+    const queryClient = useQueryClient();
+    const { enqueueAutoHideSnackbar } = useSnackbar();
+
+    return useMutation<Request[], string, string, unknown>({
         mutationFn: async (id: string) => {
             const response = await invoke<string>('delete_open_requests', {
                 id,
@@ -13,10 +20,19 @@ export function useOpenRequestsRemove() {
 
             return JSON.parse(response) as Request[];
         },
+        onError: (message) => {
+            enqueueAutoHideSnackbar({
+                message: `Could close request. ${message}`,
+                variant: 'error',
+            });
+            onError?.(message);
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({
                 queryKey: ['requests', 'open'],
             });
+
+            onSuccess?.();
         },
     });
 }
