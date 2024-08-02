@@ -1,6 +1,6 @@
-use serde::Serialize;
+use serde::{ Deserialize, Serialize };
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct RequestData {
     pub profile_name: String,
 }

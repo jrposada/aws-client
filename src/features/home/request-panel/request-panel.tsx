@@ -7,6 +7,10 @@ import {
 } from 'react';
 import { RdsRequest } from '../../../core/commands/rds';
 import { Request } from '../../../core/hooks/workspace-context/request';
+import { useWorkspaceFilepath } from '../../../core/hooks/workspace/use-workspace-filepath';
+import { useWorkspaceSaveActive } from '../../../core/hooks/workspace/use-workspace-save-active';
+import { useWorkspaceSaveActiveAs } from '../../../core/hooks/workspace/use-workspace-save-active-as';
+import { saveAsDialog } from '../../../core/utils/system-dialog';
 import useSnackbar from '../../../ui/snackbar/use-snackbar';
 import RdsPanel from '../../rds/rds-panel/rds-panel';
 
@@ -16,27 +20,32 @@ type RequestPanelProps = {
 
 const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
     const { enqueueAutoHideSnackbar } = useSnackbar();
+    const { data: filepath } = useWorkspaceFilepath();
+    const { mutate: saveActive } = useWorkspaceSaveActive();
+    const { mutate: saveActiveAs } = useWorkspaceSaveActiveAs({
+        onError: () => {
+            enqueueAutoHideSnackbar({
+                message: 'Could not save request.',
+                variant: 'error',
+            });
+        },
+        onSuccess: () => {
+            enqueueAutoHideSnackbar({
+                message: 'Requests saved.',
+                variant: 'success',
+            });
+        },
+    });
 
-    const handleSave: MouseEventHandler<HTMLButtonElement> = () => {
-        console.log('TODO');
-        // if (requestService.filepath) {
-        //     requestService
-        //         .saveCurrent(requestService.filepath)
-        //         .then(() => {
-        //             enqueueAutoHideSnackbar({
-        //                 message: 'Requests saved.',
-        //                 variant: 'success',
-        //             });
-        //         })
-        //         .catch(() => {
-        enqueueAutoHideSnackbar({
-            message: 'Could not save request.',
-            variant: 'error',
-        });
-        //         });
-        // } else {
-        //     requestService.saveCurrentAs();
-        // }
+    const handleSave: MouseEventHandler<HTMLButtonElement> = async () => {
+        if (filepath) {
+            saveActive();
+        } else {
+            const filepath = await saveAsDialog();
+            if (filepath) {
+                saveActiveAs(filepath);
+            }
+        }
     };
 
     const handleSend: MouseEventHandler<HTMLButtonElement> = () => {
@@ -91,7 +100,7 @@ const RequestPanel: FunctionComponent<RequestPanelProps> = ({ request }) => {
                         request={request as unknown as RdsRequest}
                     />
                 ) : (
-                    <span>TODO</span>
+                    <></>
                 )}
             </Box>
         </>

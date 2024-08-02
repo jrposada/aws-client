@@ -1,7 +1,7 @@
-use serde::Serialize;
+use serde::{ Deserialize, Serialize };
 use std::str::FromStr;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Serialize)]
 pub enum RequestType {
     Rds,
 }

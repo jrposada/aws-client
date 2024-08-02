@@ -2,7 +2,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use log::info;
-use std::sync::Mutex;
 
 mod commands;
 mod infrastructure;
@@ -21,19 +20,20 @@ use commands::requests::{
     post_active_request,
     post_requests,
 };
-use commands::workspace::get_workspace_filepath;
+use commands::workspace::{
+    get_workspace_filepath,
+    post_workspace_save_active_as,
+    post_workspace_save_active,
+    post_workspace_save_as,
+    post_workspace_save,
+};
 use infrastructure::logger::setup_logger;
 use services::app_state::AppState;
 
 fn main() {
     tauri::Builder
         ::default()
-        .manage(AppState {
-            active_request: Mutex::new(None),
-            filepath: Mutex::new(None),
-            open_requests: Mutex::new(Vec::new()),
-            requests: Mutex::new(Vec::new()),
-        })
+        .manage(AppState::new())
         .invoke_handler(
             tauri::generate_handler![
                 delete_open_requests,
@@ -46,6 +46,10 @@ fn main() {
                 logger,
                 post_active_request,
                 post_requests,
+                post_workspace_save_active_as,
+                post_workspace_save_active,
+                post_workspace_save_as,
+                post_workspace_save,
                 rds_execute,
                 save_app_state
             ]

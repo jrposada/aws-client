@@ -1,7 +1,7 @@
 use super::{ request_result::RequestResult, request_type::RequestType };
-use serde::Serialize;
+use serde::{ Deserialize, Serialize };
 
-#[derive(Clone, Debug, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Request<TData, TResult> {
     pub data: TData,
     pub id: String,

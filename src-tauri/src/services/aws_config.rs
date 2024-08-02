@@ -9,7 +9,7 @@ pub struct AwsConfig {}
 
 impl AwsConfig {
     pub async fn new(profile_name: &str) -> SdkConfig {
-        info!(">>> AwsConfig.new");
+        info!(">>> AwsConfig.new {:?}", profile_name);
 
         // Specify the profile to use
         let credentials_provider = ProfileFileCredentialsProvider::builder()
@@ -18,17 +18,19 @@ impl AwsConfig {
         let profile_region_provider = ProfileFileRegionProvider::builder()
             .profile_name(profile_name)
             .build();
-        let region_provider = RegionProviderChain::first_try(profile_region_provider)
+        let region_provider = RegionProviderChain::first_try(
+            profile_region_provider
+        )
             .or_default_provider()
             .or_else("us-east-1");
 
-        let config = aws_config::defaults(BehaviorVersion::latest())
+        let config = aws_config
+            ::defaults(BehaviorVersion::latest())
             .credentials_provider(credentials_provider)
             .region(region_provider)
-            .load()
-            .await;
+            .load().await;
 
-        info!("<<< AwsConfig.new");
+        info!("<<< AwsConfig.new {:?}", profile_name);
         return config;
     }
 }

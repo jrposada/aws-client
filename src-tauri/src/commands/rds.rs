@@ -1,14 +1,19 @@
 use aws_sdk_rdsdata::types::Field::{
-    BlobValue, BooleanValue, DoubleValue, IsNull, LongValue, StringValue,
+    BlobValue,
+    BooleanValue,
+    DoubleValue,
+    IsNull,
+    LongValue,
+    StringValue,
 };
 use aws_sdk_rdsdata::Client;
 use log::info;
-use serde::{Deserialize, Serialize};
+use serde::{ Deserialize, Serialize };
 use std::collections::HashMap;
 
 use crate::services::aws_config::AwsConfig;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 struct ColumnMetadata {
     name: String,
 }
@@ -19,7 +24,7 @@ pub async fn rds_execute(
     database: &str,
     profile_name: &str,
     query: &str,
-    secret_arn: &str,
+    secret_arn: &str
 ) -> Result<String, String> {
     info!(">>> rds_execute");
 
@@ -64,7 +69,8 @@ pub async fn rds_execute(
                     LongValue(l) => l.to_string(),
                     BooleanValue(b) => b.to_string(),
                     DoubleValue(d) => d.to_string(),
-                    BlobValue(b) => String::from_utf8_lossy(b.as_ref()).to_string(),
+                    BlobValue(b) =>
+                        String::from_utf8_lossy(b.as_ref()).to_string(),
                     IsNull(_) => "null".to_string(),
                     _ => "unknown".to_string(),
                 };
@@ -75,8 +81,8 @@ pub async fn rds_execute(
         .collect();
 
     info!("<<< rds_execute");
-    match serde_json::to_string(&records) {
+    return match serde_json::to_string(&records) {
         Ok(response_str) => Ok(response_str),
         Err(error) => Err(format!("Failed to convert to JSON: {}", error)),
-    }
+    };
 }

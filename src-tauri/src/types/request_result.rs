@@ -1,6 +1,6 @@
-use serde::Serialize;
+use serde::{ Deserialize, Serialize };
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct RequestResult<TData> {
     pub success: bool,
     pub data: Option<TData>,

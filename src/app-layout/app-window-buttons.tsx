@@ -10,6 +10,9 @@ import useSnackbar from '../ui/snackbar/use-snackbar';
 import AppWindowButton, {
     AppWindowButtonProps,
 } from './styled/app-window-button';
+import { useWorkspaceSave } from '../core/hooks/workspace/use-workspace-save';
+
+const closeOnErrorMs = 2000;
 
 const buttonProps: Partial<AppWindowButtonProps> = {
     color: 'inherit',
@@ -21,6 +24,18 @@ const iconProps: DefaultComponentProps<SvgIconTypeMap<{}, 'svg'>> = {
 
 const AppWindowButtons: FunctionComponent = () => {
     const { enqueueAutoHideSnackbar } = useSnackbar();
+    const { mutate: save } = useWorkspaceSave({
+        onSuccess: () => {
+            appWindow.close();
+        },
+        onError: () => {
+            enqueueAutoHideSnackbar({
+                message: `Auto save failed, app will close in ${closeOnErrorMs / 1000} seconds`,
+                variant: 'error',
+            });
+            setTimeout(() => void appWindow.close(), closeOnErrorMs);
+        },
+    });
 
     const [isMaximized, setIsMaximized] = useState(false);
     const handleMinimize = () => {
@@ -38,19 +53,7 @@ const AppWindowButtons: FunctionComponent = () => {
     };
 
     const handleClose: MouseEventHandler = () => {
-        console.log('TODO');
-        // requestService
-        //     .save()
-        //     .then(() => {
-        //         appWindow.close();
-        //     })
-        //     .catch((error) => {
-        //         console.log(error);
-        enqueueAutoHideSnackbar({
-            message: 'Auto save failed',
-            variant: 'error',
-        });
-        //     });
+        save();
     };
     return (
         <div
