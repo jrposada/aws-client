@@ -1,7 +1,10 @@
 use log::info;
 use tauri::State;
 
-use crate::{ services::app_state::AppState, types::request_type::RequestType };
+use crate::{
+    services::app_state::AppState,
+    types::{ request_data::RequestData, request_type::RequestType },
+};
 
 #[tauri::command]
 pub async fn delete_open_requests<'r>(
@@ -91,11 +94,24 @@ pub async fn post_requests<'r>(
 pub async fn put_requests<'r>(
     app_state: State<'r, AppState>,
     id: &str,
-    title: &str
+    title: &str,
+    data: Option<&str>
 ) -> Result<String, String> {
     info!(">>> put_requests {:?}", id);
 
-    let request = app_state.update_request(id, title)?;
+    let data: Option<RequestData> = match data {
+        Some(data) => {
+            match serde_json::from_str(data) {
+                Ok(parsed_data) => Some(parsed_data),
+                Err(error) => {
+                    return Err(format!("Failed to parse data: {:?}", error));
+                }
+            }
+        }
+        None => None,
+    };
+
+    let request = app_state.update_request(id, title, data)?;
     let result = match serde_json::to_string(&request) {
         Ok(value) => Ok(value.to_string()),
         Err(error) => Err(format!("{:?}", error)),

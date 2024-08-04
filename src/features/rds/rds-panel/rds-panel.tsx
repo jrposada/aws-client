@@ -11,53 +11,89 @@ import TextEditor, {
     TextEditorProps,
 } from '../../home/text-editor/text-editor';
 import RdsResult from '../rds-result/rds-result';
+import { useRequestsUpdate } from '../../../core/hooks/requests/use-requests-update';
+import { event } from '@tauri-apps/api';
 
 type RdsPanelProps = {
     request: Request<'rds'>;
 };
 
 const RdsPanel: FunctionComponent<RdsPanelProps> = ({ request }) => {
+    const { mutate: updateRequest } = useRequestsUpdate();
+
     const handleClusterArnChange: ChangeEventHandler<HTMLInputElement> = (
-        _event,
+        event,
     ) => {
-        // request.setData((prev) => ({
-        //     ...prev,
-        //     clusterArn: event.target.value,
-        // }));
+        updateRequest({
+            id: request.id,
+            title: request.title,
+            data: {
+                ...request.data,
+                rds: {
+                    ...request.data.rds,
+                    cluster_arn: event.target.value,
+                },
+            },
+        });
     };
 
     const handleDatabaseChange: ChangeEventHandler<HTMLInputElement> = (
-        _event,
+        event,
     ) => {
-        // request.setData((prev) => ({
-        //     ...prev,
-        //     database: event.target.value,
-        // }));
+        updateRequest({
+            id: request.id,
+            title: request.title,
+            data: {
+                ...request.data,
+                rds: {
+                    ...request.data.rds,
+                    database: event.target.value,
+                },
+            },
+        });
     };
 
     const handleProfileNameChange: ChangeEventHandler<HTMLInputElement> = (
-        _event,
+        event,
     ) => {
-        // request.setData((prev) => ({
-        //     ...prev,
-        //     profileName: event.target.value,
-        // }));
+        updateRequest({
+            id: request.id,
+            title: request.title,
+            data: {
+                ...request.data,
+                profile_name: event.target.value,
+            },
+        });
     };
 
-    const handleQueryChange: TextEditorProps['onChange'] = (_next) => {
-        // request.setData((prev) => ({
-        //     ...prev,
-        //     query: next,
-        // }));
+    const handleQueryChange: TextEditorProps['onChange'] = (next) => {
+        updateRequest({
+            id: request.id,
+            title: request.title,
+            data: {
+                ...request.data,
+                rds: {
+                    ...request.data.rds,
+                    query: next,
+                },
+            },
+        });
     };
 
     const handleSecretArnChange: ChangeEventHandler<HTMLInputElement> = (
-        _event,
+        event,
     ) => {
-        // request.setData((prev) => ({
-        //     ...prev,
-        //     secretArn: event.target.value,
-        // }));
+        updateRequest({
+            id: request.id,
+            title: request.title,
+            data: {
+                ...request.data,
+                rds: {
+                    ...request.data.rds,
+                    secret_arn: event.target.value,
+                },
+            },
+        });
     };
 
     const handleSend: MouseEventHandler<HTMLButtonElement> = () => {

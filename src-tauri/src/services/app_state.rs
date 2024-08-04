@@ -379,7 +379,8 @@ impl AppState {
     pub fn update_request(
         &self,
         id: &str,
-        title: &str
+        title: &str,
+        data: Option<RequestData>
     ) -> Result<Request<RequestResult<Value>>, String> {
         info!(">>> AppState.update_request {:?}", id);
 
@@ -390,6 +391,7 @@ impl AppState {
         match requests_guard.iter_mut().find(|item| item.id == id) {
             Some(request) => {
                 request.title = title.to_string();
+                request.safe_set_data(data.clone())?;
                 _updated_request = Some(request.clone());
             }
             None => {
@@ -403,6 +405,7 @@ impl AppState {
         match open_requests_guard.iter_mut().find(|item| item.id == id) {
             Some(request) => {
                 request.title = title.to_string();
+                request.safe_set_data(data.clone())?;
             }
             None => {}
         }
@@ -416,6 +419,7 @@ impl AppState {
             Some(ref mut active_request) => {
                 if active_request.id == id {
                     active_request.title = title.to_string();
+                    active_request.safe_set_data(data.clone())?;
                 }
             }
             None => {}
