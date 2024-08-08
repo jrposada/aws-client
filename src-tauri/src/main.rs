@@ -8,9 +8,7 @@ mod infrastructure;
 mod services;
 mod types;
 
-use commands::app_state::{ load_app_state, save_app_state };
 use commands::logger::logger;
-use commands::rds::rds_execute;
 use commands::requests::{
     delete_open_requests,
     delete_requests,
@@ -18,6 +16,7 @@ use commands::requests::{
     get_open_requests,
     get_requests,
     post_active_request,
+    post_requests_execute,
     post_requests,
     put_requests,
 };
@@ -43,17 +42,15 @@ fn main() {
                 get_open_requests,
                 get_requests,
                 get_workspace_filepath,
-                load_app_state,
                 logger,
                 post_active_request,
+                post_requests_execute,
                 post_requests,
                 post_workspace_save_active_as,
                 post_workspace_save_active,
                 post_workspace_save_as,
                 post_workspace_save,
-                put_requests,
-                rds_execute,
-                save_app_state
+                put_requests
             ]
         )
         .setup(|app| {

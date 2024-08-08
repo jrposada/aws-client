@@ -1,12 +1,17 @@
 use serde::{ Deserialize, Serialize };
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct RequestResult<TData> {
-    pub success: bool,
-    pub data: Option<TData>,
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct RequestResultData {
+    pub rds: Option<String>,
 }
 
-impl<TData> Default for RequestResult<TData> {
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct RequestResult {
+    pub success: bool,
+    pub data: Option<RequestResultData>,
+}
+
+impl Default for RequestResult {
     fn default() -> Self {
         Self {
             success: false,

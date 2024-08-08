@@ -1,18 +1,19 @@
 import { Button, TextField, Toolbar } from '@mui/material';
+import { event } from '@tauri-apps/api';
 import { t } from 'i18next';
 import {
     ChangeEventHandler,
     FunctionComponent,
     MouseEventHandler,
 } from 'react';
+import { useRequestsExecute } from '../../../core/hooks/requests/use-requests-execute';
+import { useRequestsUpdate } from '../../../core/hooks/requests/use-requests-update';
 import { Request } from '../../../core/types/request';
 import ResponseViewport from '../../home/response-viewport/response-viewport';
 import TextEditor, {
     TextEditorProps,
 } from '../../home/text-editor/text-editor';
 import RdsResult from '../rds-result/rds-result';
-import { useRequestsUpdate } from '../../../core/hooks/requests/use-requests-update';
-import { event } from '@tauri-apps/api';
 
 type RdsPanelProps = {
     request: Request<'rds'>;
@@ -20,6 +21,7 @@ type RdsPanelProps = {
 
 const RdsPanel: FunctionComponent<RdsPanelProps> = ({ request }) => {
     const { mutate: updateRequest } = useRequestsUpdate();
+    const { mutate: executeRequest } = useRequestsExecute();
 
     const handleClusterArnChange: ChangeEventHandler<HTMLInputElement> = (
         event,
@@ -97,8 +99,7 @@ const RdsPanel: FunctionComponent<RdsPanelProps> = ({ request }) => {
     };
 
     const handleSend: MouseEventHandler<HTMLButtonElement> = () => {
-        // request.send();
-        console.log('TODO');
+        executeRequest({ id: request.id });
     };
 
     return (

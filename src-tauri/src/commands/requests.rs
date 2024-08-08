@@ -91,6 +91,17 @@ pub async fn post_requests<'r>(
 }
 
 #[tauri::command]
+pub async fn post_requests_execute<'r>(
+    app_state: State<'r, AppState>,
+    id: &str
+) -> Result<(), String> {
+    info!(">>> post_requests_execute {:?}", id);
+    app_state.execute_request(id).await;
+    info!("<<< post_requests_execute {:?}", id);
+    return Ok(());
+}
+
+#[tauri::command]
 pub async fn put_requests<'r>(
     app_state: State<'r, AppState>,
     id: &str,

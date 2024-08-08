@@ -1,6 +1,5 @@
 use log::info;
 use serde::{ Deserialize, Serialize };
-use serde_json::Value;
 use std::fs::File;
 use std::sync::Mutex;
 use uuid::Uuid;
@@ -9,11 +8,13 @@ use std::io::Write;
 // use std::path::PathBuf;
 // use tauri::{ api::path::app_data_dir, AppHandle };
 
-use crate::types::{
-    request::Request,
-    request_data::RequestData,
-    request_result::RequestResult,
-    request_type::RequestType,
+use crate::{
+    services::request_executor::RequestExecutor,
+    types::{
+        request::Request,
+        request_data::RequestData,
+        request_type::RequestType,
+    },
 };
 
 const EXTENSION: &str = ".aws-client";
@@ -21,55 +22,56 @@ const EXTENSION: &str = ".aws-client";
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SavedAppState {
     /** According state write to file system, request currently active in the frontend. */
-    pub saved_active_request: Option<Request<RequestResult<Value>>>,
+    pub saved_active_request: Option<Request>,
 
     /** According state write to file system, filepath of this file. */
     pub saved_filepath: Option<String>,
 
     /** According state write to file system, open requests in the frontend. */
-    pub saved_open_requests: Vec<Request<RequestResult<Value>>>,
+    pub saved_open_requests: Vec<Request>,
 
     /** According state write to file system, complete list of all requests in the workspace. */
-    pub saved_requests: Vec<Request<RequestResult<Value>>>,
+    pub saved_requests: Vec<Request>,
 
     /** According state in memory, request currently active in the frontend. */
-    pub active_request: Option<Request<RequestResult<Value>>>,
+    pub active_request: Option<Request>,
 
     /** According state in memory, filepath of this file. */
     pub filepath: Option<String>,
 
     /** According state in memory, open requests in the frontend. */
-    pub open_requests: Vec<Request<RequestResult<Value>>>,
+    pub open_requests: Vec<Request>,
 
     /** According state in memory, complete list of all requests in the workspace. */
-    pub requests: Vec<Request<RequestResult<Value>>>,
+    pub requests: Vec<Request>,
 }
 
+// TODO: simplify step open requests and active requests variables should only hold ids
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AppState {
     /** According state write to file system, request currently active in the frontend. */
-    pub saved_active_request: Mutex<Option<Request<RequestResult<Value>>>>,
+    pub saved_active_request: Mutex<Option<Request>>,
 
     /** According state write to file system, filepath of this file. */
     pub saved_filepath: Mutex<Option<String>>,
 
     /** According state write to file system, open requests in the frontend. */
-    pub saved_open_requests: Mutex<Vec<Request<RequestResult<Value>>>>,
+    pub saved_open_requests: Mutex<Vec<Request>>,
 
     /** According state write to file system, complete list of all requests in the workspace. */
-    pub saved_requests: Mutex<Vec<Request<RequestResult<Value>>>>,
+    pub saved_requests: Mutex<Vec<Request>>,
 
     /** According state in memory, request currently active in the frontend. */
-    pub active_request: Mutex<Option<Request<RequestResult<Value>>>>,
+    pub active_request: Mutex<Option<Request>>,
 
     /** According state in memory, filepath of this file. */
     pub filepath: Mutex<Option<String>>,
 
     /** According state in memory, open requests in the frontend. */
-    pub open_requests: Mutex<Vec<Request<RequestResult<Value>>>>,
+    pub open_requests: Mutex<Vec<Request>>,
 
     /** According state in memory, complete list of all requests in the workspace. */
-    pub requests: Mutex<Vec<Request<RequestResult<Value>>>>,
+    pub requests: Mutex<Vec<Request>>,
 }
 
 impl AppState {
@@ -96,7 +98,7 @@ impl AppState {
 
         let id = Uuid::new_v4().to_string();
 
-        let request: Request<RequestResult<Value>> = Request {
+        let request: Request = Request {
             data: RequestData::new(request_type),
             id,
             is_dirty: true,
@@ -124,6 +126,70 @@ impl AppState {
         drop(active_request_guard);
 
         info!("<<< AppState.add_request {:?}", request_type);
+        return Ok(());
+    }
+
+    pub async fn execute_request(&self, id: &str) -> Result<(), String> {
+        info!(">>> AppState.execute_request");
+
+        // Find request.
+        let mut _updated_request: Option<Request> = None;
+
+        info!("--- AppState.execute_request update in requests");
+        let mut requests_guard = self.requests.lock().unwrap();
+        match requests_guard.iter_mut().find(|item| item.id == id) {
+            Some(request) => {
+                let result = RequestExecutor::execute(request).await?;
+                request.safe_set_result(result)?;
+                _updated_request = Some(request.clone());
+            }
+            None => {
+                return Err(format!("Could not find request {:?}", id));
+            }
+        }
+        drop(requests_guard);
+
+        info!("--- AppState.execute_request update in open requests if open");
+        let mut open_requests_guard = self.open_requests.lock().unwrap();
+        match open_requests_guard.iter_mut().find(|item| item.id == id) {
+            Some(request) => {
+                match _updated_request {
+                    Some(ref updated_request) => {
+                        request.safe_set_result(updated_request.result.clone());
+                    }
+                    None => {
+                        request.safe_set_result(None);
+                    }
+                }
+            }
+            None => {}
+        }
+        drop(open_requests_guard);
+
+        info!(
+            "--- AppState.execute_request update in update active requests if active"
+        );
+        let mut active_request_guard = self.active_request.lock().unwrap();
+        match *active_request_guard {
+            Some(ref mut active_request) => {
+                if active_request.id == id {
+                    match _updated_request {
+                        Some(updated_request) => {
+                            active_request.safe_set_result(
+                                updated_request.result
+                            );
+                        }
+                        None => {
+                            active_request.safe_set_result(None);
+                        }
+                    }
+                }
+            }
+            None => {}
+        }
+        drop(active_request_guard);
+
+        info!("<<< AppState.execute_request");
         return Ok(());
     }
 
@@ -203,9 +269,7 @@ impl AppState {
         return Ok(());
     }
 
-    /**
-     * Save the full state.
-     */
+    /** Save the full state. */
     pub fn save(&self) -> Result<(), String> {
         info!(">>> AppState.save");
 
@@ -306,7 +370,7 @@ impl AppState {
         return Ok(());
     }
 
-    // Save only active
+    /** Save only active */
     pub fn save_active_as(&self, filepath: &str) -> Result<(), String> {
         // Update flag for active
         let mut filepath_guard = self.filepath.lock().unwrap();
@@ -318,9 +382,10 @@ impl AppState {
         return Ok(());
     }
 
-    // Save only active
+    /** Save only active  */
     pub fn save_active(&self) -> Result<(), String> {
         // Update flag for active
+        // TODO implement
 
         return Ok(());
     }
@@ -381,10 +446,10 @@ impl AppState {
         id: &str,
         title: &str,
         data: Option<RequestData>
-    ) -> Result<Request<RequestResult<Value>>, String> {
+    ) -> Result<Request, String> {
         info!(">>> AppState.update_request {:?}", id);
 
-        let mut _updated_request: Option<Request<RequestResult<Value>>> = None;
+        let mut _updated_request: Option<Request> = None;
 
         info!("--- AppState.update_request update in requests");
         let mut requests_guard = self.requests.lock().unwrap();
