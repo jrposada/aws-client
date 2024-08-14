@@ -3,7 +3,12 @@ use tauri::State;
 
 use crate::{
     services::app_state::AppState,
-    types::{ request_data::RequestData, request_type::RequestType },
+    types::{
+        rds_data::RdsData,
+        request::Request,
+        request_data::RequestData,
+        request_type::RequestType,
+    },
 };
 
 #[tauri::command]

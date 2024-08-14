@@ -155,10 +155,12 @@ impl AppState {
             Some(request) => {
                 match _updated_request {
                     Some(ref updated_request) => {
-                        request.safe_set_result(updated_request.result.clone());
+                        request.safe_set_result(
+                            updated_request.result.clone()
+                        )?;
                     }
                     None => {
-                        request.safe_set_result(None);
+                        request.safe_set_result(None)?;
                     }
                 }
             }
@@ -177,10 +179,10 @@ impl AppState {
                         Some(updated_request) => {
                             active_request.safe_set_result(
                                 updated_request.result
-                            );
+                            )?;
                         }
                         None => {
-                            active_request.safe_set_result(None);
+                            active_request.safe_set_result(None)?;
                         }
                     }
                 }
