@@ -1,7 +1,7 @@
 use log::info;
-use serde::{ Deserialize, Serialize };
+use serde::{Deserialize, Serialize};
 use std::fs::File;
-use std::sync::Mutex;
+use tokio::sync::Mutex;
 use uuid::Uuid;
 // use std::io::Read;
 use std::io::Write;
@@ -10,11 +10,7 @@ use std::io::Write;
 
 use crate::{
     services::request_executor::RequestExecutor,
-    types::{
-        request::Request,
-        request_data::RequestData,
-        request_type::RequestType,
-    },
+    types::{request::Request, request_data::RequestData, request_type::RequestType},
 };
 
 const EXTENSION: &str = ".aws-client";
@@ -47,7 +43,7 @@ pub struct SavedAppState {
 }
 
 // TODO: simplify step open requests and active requests variables should only hold ids
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Debug)]
 pub struct AppState {
     /** According state write to file system, request currently active in the frontend. */
     pub saved_active_request: Mutex<Option<Request>>,
@@ -89,11 +85,7 @@ impl AppState {
         }
     }
 
-    pub fn add_request(
-        &self,
-        request_type: RequestType,
-        title: &str
-    ) -> Result<(), String> {
+    pub async fn add_request(&self, request_type: RequestType, title: &str) -> Result<(), String> {
         info!(">>> AppState.add_request {:?}", request_type);
 
         let id = Uuid::new_v4().to_string();
@@ -109,19 +101,19 @@ impl AppState {
 
         // Add to requests
         info!("--- AppState.add_request add to requests");
-        let mut requests_guard = self.requests.lock().unwrap();
+        let mut requests_guard = self.requests.lock().await;
         requests_guard.push(request.clone());
         drop(requests_guard);
 
         // Add to open requests
         info!("--- AppState.add_request add to open requests");
-        let mut open_requests_guard = self.open_requests.lock().unwrap();
+        let mut open_requests_guard = self.open_requests.lock().await;
         open_requests_guard.push(request.clone());
         drop(open_requests_guard);
 
         // Set as active
         info!("--- AppState.add_request set as active requests");
-        let mut active_request_guard = self.active_request.lock().unwrap();
+        let mut active_request_guard = self.active_request.lock().await;
         *active_request_guard = Some(request.clone());
         drop(active_request_guard);
 
@@ -136,7 +128,7 @@ impl AppState {
         let mut _updated_request: Option<Request> = None;
 
         info!("--- AppState.execute_request update in requests");
-        let mut requests_guard = self.requests.lock().unwrap();
+        let mut requests_guard = self.requests.lock().await;
         match requests_guard.iter_mut().find(|item| item.id == id) {
             Some(request) => {
                 let result = RequestExecutor::execute(request).await?;
@@ -150,36 +142,28 @@ impl AppState {
         drop(requests_guard);
 
         info!("--- AppState.execute_request update in open requests if open");
-        let mut open_requests_guard = self.open_requests.lock().unwrap();
+        let mut open_requests_guard = self.open_requests.lock().await;
         match open_requests_guard.iter_mut().find(|item| item.id == id) {
-            Some(request) => {
-                match _updated_request {
-                    Some(ref updated_request) => {
-                        request.safe_set_result(
-                            updated_request.result.clone()
-                        )?;
-                    }
-                    None => {
-                        request.safe_set_result(None)?;
-                    }
+            Some(request) => match _updated_request {
+                Some(ref updated_request) => {
+                    request.safe_set_result(updated_request.result.clone())?;
                 }
-            }
+                None => {
+                    request.safe_set_result(None)?;
+                }
+            },
             None => {}
         }
         drop(open_requests_guard);
 
-        info!(
-            "--- AppState.execute_request update in update active requests if active"
-        );
-        let mut active_request_guard = self.active_request.lock().unwrap();
+        info!("--- AppState.execute_request update in update active requests if active");
+        let mut active_request_guard = self.active_request.lock().await;
         match *active_request_guard {
             Some(ref mut active_request) => {
                 if active_request.id == id {
                     match _updated_request {
                         Some(updated_request) => {
-                            active_request.safe_set_result(
-                                updated_request.result
-                            )?;
+                            active_request.safe_set_result(updated_request.result)?;
                         }
                         None => {
                             active_request.safe_set_result(None)?;
@@ -195,15 +179,12 @@ impl AppState {
         return Ok(());
     }
 
-    pub fn remove_open_request(&self, id: &str) -> Result<(), String> {
+    pub async fn remove_open_request(&self, id: &str) -> Result<(), String> {
         info!(">>> AppState.remove_open_request {:?}", id);
 
         // First, remove from open requests if it is open.
-        let mut open_requests_guard = self.open_requests.lock().unwrap();
-        if
-            let Some(open_request_index) = open_requests_guard
-                .iter()
-                .position(|item| item.id == id)
+        let mut open_requests_guard = self.open_requests.lock().await;
+        if let Some(open_request_index) = open_requests_guard.iter().position(|item| item.id == id)
         {
             info!("--- AppState.remove_open_request remove");
             open_requests_guard.remove(open_request_index);
@@ -211,11 +192,11 @@ impl AppState {
         drop(open_requests_guard);
 
         // Second, update active request if it matches IDs.
-        let mut active_request_guard = self.active_request.lock().unwrap();
+        let mut active_request_guard = self.active_request.lock().await;
         if let Some(active_request) = active_request_guard.as_mut() {
             if active_request.id == id {
                 info!("--- AppState.remove_open_request is active");
-                let open_requests_guard = self.open_requests.lock().unwrap();
+                let open_requests_guard = self.open_requests.lock().await;
                 if let Some(last_request) = open_requests_guard.last() {
                     info!(
                         "--- AppState.remove_open_request set {:?} as active",
@@ -224,9 +205,7 @@ impl AppState {
                     *active_request = last_request.clone();
                 } else {
                     // If there is no last request, we should clear the active_request
-                    info!(
-                        "--- AppState.remove_open_request no candidate for active"
-                    );
+                    info!("--- AppState.remove_open_request no candidate for active");
                     *active_request_guard = None;
                 }
                 drop(open_requests_guard);
@@ -238,11 +217,11 @@ impl AppState {
         return Ok(());
     }
 
-    pub fn remove_request(&self, id: &str) -> Result<(), String> {
+    pub async fn remove_request(&self, id: &str) -> Result<(), String> {
         info!(">>> AppState.remove_request {:?}", id);
 
         // First, remove request from workspace requests.
-        let mut requests_guard = self.requests.lock().unwrap();
+        let mut requests_guard = self.requests.lock().await;
         let request_index = requests_guard
             .iter()
             .position(|item| item.id == id)
@@ -251,31 +230,31 @@ impl AppState {
         drop(requests_guard);
 
         // Second, remove from open requests if it is open.
-        self.remove_open_request(id)?;
+        self.remove_open_request(id).await?;
 
         info!("<<< AppState.remove_request {:?}", id);
         return Ok(());
     }
 
-    pub fn save_as(&self, filepath: &str) -> Result<(), String> {
+    pub async fn save_as(&self, filepath: &str) -> Result<(), String> {
         info!(">>> AppState.save_as {:?}", filepath);
 
         info!("--- AppState.save_as set filepath");
-        let mut filepath_guard = self.filepath.lock().unwrap();
+        let mut filepath_guard = self.filepath.lock().await;
         *filepath_guard = Some(filepath.to_string());
         drop(filepath_guard);
 
-        self.save()?;
+        self.save().await?;
 
         info!("<<< AppState.save_as {:?}", filepath);
         return Ok(());
     }
 
     /** Save the full state. */
-    pub fn save(&self) -> Result<(), String> {
+    pub async fn save(&self) -> Result<(), String> {
         info!(">>> AppState.save");
 
-        let filepath_guard = self.filepath.lock().unwrap();
+        let filepath_guard = self.filepath.lock().await;
         if let None = *filepath_guard {
             info!("--- AppState.save no filepath to save to");
             return Err(format!("No filepath to save to"));
@@ -283,82 +262,58 @@ impl AppState {
         drop(filepath_guard);
 
         info!("--- AppState.save set `isDirty` flags to false for requests");
-        let mut requests_guard = self.requests.lock().unwrap();
+        let mut requests_guard = self.requests.lock().await;
         for request in requests_guard.iter_mut() {
             request.is_dirty = false;
         }
         drop(requests_guard);
 
-        info!(
-            "--- AppState.save set `isDirty` flags to false for open requests"
-        );
-        let mut open_requests_guard = self.open_requests.lock().unwrap();
+        info!("--- AppState.save set `isDirty` flags to false for open requests");
+        let mut open_requests_guard = self.open_requests.lock().await;
         for open_request in open_requests_guard.iter_mut() {
             open_request.is_dirty = false;
         }
         drop(open_requests_guard);
 
-        info!(
-            "--- AppState.save set `isDirty` flags to false for active request"
-        );
-        let mut active_request_guard = self.active_request.lock().unwrap();
+        info!("--- AppState.save set `isDirty` flags to false for active request");
+        let mut active_request_guard = self.active_request.lock().await;
         if let Some(ref mut active_request) = *active_request_guard {
             active_request.is_dirty = false;
         }
         drop(active_request_guard);
 
-        info!(
-            "--- AppState.save copy memory state to saved state: active request"
-        );
+        info!("--- AppState.save copy memory state to saved state: active request");
         {
-            let mut saved_active_request_guard = self.saved_active_request
-                .lock()
-                .unwrap();
-            *saved_active_request_guard = self.active_request
-                .lock()
-                .unwrap()
-                .clone();
+            let mut saved_active_request_guard = self.saved_active_request.lock().await;
+            *saved_active_request_guard = self.active_request.lock().await.clone();
         }
 
-        info!(
-            "--- AppState.save copy memory state to saved state: open requests"
-        );
+        info!("--- AppState.save copy memory state to saved state: open requests");
         {
-            let mut saved_open_requests_guard = self.saved_open_requests
-                .lock()
-                .unwrap();
-            *saved_open_requests_guard = self.open_requests
-                .lock()
-                .unwrap()
-                .clone();
+            let mut saved_open_requests_guard = self.saved_open_requests.lock().await;
+            *saved_open_requests_guard = self.open_requests.lock().await.clone();
         }
 
         info!("--- AppState.save copy memory state to saved state: requests");
         {
-            let mut saved_requests_guard = self.saved_requests.lock().unwrap();
-            *saved_requests_guard = self.requests.lock().unwrap().clone();
+            let mut saved_requests_guard = self.saved_requests.lock().await;
+            *saved_requests_guard = self.requests.lock().await.clone();
         }
 
         // Save to file
         info!("--- AppState.save save to file");
-        let filepath_guard = self.filepath.lock().unwrap();
+        let filepath_guard = self.filepath.lock().await;
         if let Some(ref filepath) = *filepath_guard {
             info!("--- AppState.save lock state");
             let saved_state = SavedAppState {
-                saved_active_request: self.saved_active_request
-                    .lock()
-                    .unwrap()
-                    .clone(),
-                saved_filepath: self.saved_filepath.lock().unwrap().clone(),
-                saved_open_requests: self.saved_open_requests
-                    .lock()
-                    .unwrap()
-                    .clone(),
-                saved_requests: self.saved_requests.lock().unwrap().clone(),
-                active_request: self.active_request.lock().unwrap().clone(),
+                saved_active_request: self.saved_active_request.lock().await.clone(),
+                saved_filepath: self.saved_filepath.lock().await.clone(),
+                saved_open_requests: self.saved_open_requests.lock().await.clone(),
+                saved_requests: self.saved_requests.lock().await.clone(),
+                active_request: self.active_request.lock().await.clone(),
                 filepath: filepath_guard.clone(),
-                open_requests: self.open_requests.lock().unwrap().clone(),
-                requests: self.requests.lock().unwrap().clone(),
+                open_requests: self.open_requests.lock().await.clone(),
+                requests: self.requests.lock().await.clone(),
             };
             let state = serde_json::to_string(&saved_state).unwrap();
             AppState::save_to_file(filepath, &state)?;
@@ -373,9 +328,9 @@ impl AppState {
     }
 
     /** Save only active */
-    pub fn save_active_as(&self, filepath: &str) -> Result<(), String> {
+    pub async fn save_active_as(&self, filepath: &str) -> Result<(), String> {
         // Update flag for active
-        let mut filepath_guard = self.filepath.lock().unwrap();
+        let mut filepath_guard = self.filepath.lock().await;
         *filepath_guard = Some(filepath.to_string());
         drop(filepath_guard);
 
@@ -392,15 +347,15 @@ impl AppState {
         return Ok(());
     }
 
-    pub fn set_active_request(&self, id: &str) -> Result<(), String> {
+    pub async fn set_active_request(&self, id: &str) -> Result<(), String> {
         // FIXME: not working as expected.
         // TODO: invert ifs to reduce repetition.
-        let open_requests = self.open_requests.lock().unwrap();
+        let open_requests = self.open_requests.lock().await;
 
         // Find the request in open_requests
         if let Some(request) = open_requests.iter().find(|item| item.id == id) {
             // Set active request
-            let mut active_request = self.active_request.lock().unwrap();
+            let mut active_request = self.active_request.lock().await;
             *active_request = Some(request.clone());
             return Ok(());
         }
@@ -408,16 +363,16 @@ impl AppState {
         drop(open_requests);
 
         // Need to open request first.
-        let requests = self.requests.lock().unwrap();
+        let requests = self.requests.lock().await;
 
         if let Some(request) = requests.iter().find(|item| item.id == id) {
             // Reacquire the open_requests lock to modify it
-            let mut open_requests = self.open_requests.lock().unwrap();
+            let mut open_requests = self.open_requests.lock().await;
             open_requests.push(request.clone());
             drop(open_requests);
 
             // Set active request
-            let mut active_request = self.active_request.lock().unwrap();
+            let mut active_request = self.active_request.lock().await;
             *active_request = Some(request.clone());
             drop(active_request);
             return Ok(());
@@ -443,18 +398,18 @@ impl AppState {
         //         return next;
     }
 
-    pub fn update_request(
+    pub async fn update_request(
         &self,
         id: &str,
         title: &str,
-        data: Option<RequestData>
+        data: Option<RequestData>,
     ) -> Result<Request, String> {
         info!(">>> AppState.update_request {:?}", id);
 
         let mut _updated_request: Option<Request> = None;
 
         info!("--- AppState.update_request update in requests");
-        let mut requests_guard = self.requests.lock().unwrap();
+        let mut requests_guard = self.requests.lock().await;
         match requests_guard.iter_mut().find(|item| item.id == id) {
             Some(request) => {
                 request.title = title.to_string();
@@ -468,7 +423,7 @@ impl AppState {
         drop(requests_guard);
 
         info!("--- AppState.update_request update in open requests if open");
-        let mut open_requests_guard = self.open_requests.lock().unwrap();
+        let mut open_requests_guard = self.open_requests.lock().await;
         match open_requests_guard.iter_mut().find(|item| item.id == id) {
             Some(request) => {
                 request.title = title.to_string();
@@ -478,10 +433,8 @@ impl AppState {
         }
         drop(open_requests_guard);
 
-        info!(
-            "--- AppState.update_request update in update active requests if active"
-        );
-        let mut active_request_guard = self.active_request.lock().unwrap();
+        info!("--- AppState.update_request update in update active requests if active");
+        let mut active_request_guard = self.active_request.lock().await;
         match *active_request_guard {
             Some(ref mut active_request) => {
                 if active_request.id == id {
@@ -506,7 +459,8 @@ impl AppState {
         info!(">>> AppState.save_to_file {:?}", filepath);
 
         let mut file = File::create(filepath).map_err(|e| e.to_string())?;
-        file.write_all(state.as_bytes()).map_err(|e| e.to_string())?;
+        file.write_all(state.as_bytes())
+            .map_err(|e| e.to_string())?;
 
         info!("<<< AppState.save_to_file {:?}", filepath);
         return Ok(());
