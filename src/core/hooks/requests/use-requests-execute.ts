@@ -21,9 +21,9 @@ export function useRequestsExecute({
     return useMutation<void, string, UseRequestsExecuteMutationParams, unknown>(
         {
             mutationFn: async ({ id }) => {
-                void (await invoke<string>('post_requests_execute', {
+                await invoke<void>('post_requests_execute', {
                     id,
-                }));
+                });
             },
             onError: (message) => {
                 enqueueAutoHideSnackbar({

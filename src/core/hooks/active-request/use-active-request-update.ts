@@ -1,7 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api';
 import useSnackbar from '../../../ui/snackbar/use-snackbar';
-import { Request } from '../../types/request';
 
 type UseActiveRequestUpdateParams = {
     onError?: (message: string) => void;
@@ -15,13 +14,11 @@ export function useActiveRequestUpdate({
     const queryClient = useQueryClient();
     const { enqueueAutoHideSnackbar } = useSnackbar();
 
-    return useMutation<Request[], string, string, unknown>({
+    return useMutation<void, string, string, unknown>({
         mutationFn: async (id: string) => {
-            const response = await invoke<string>('post_active_request', {
+            await invoke<void>('post_active_request', {
                 id,
             });
-
-            return JSON.parse(response) as Request[];
         },
         onError: (message) => {
             enqueueAutoHideSnackbar({
@@ -32,11 +29,7 @@ export function useActiveRequestUpdate({
         },
         onSuccess: () => {
             queryClient.invalidateQueries({
-                queryKey: ['requests', 'open'],
-            });
-
-            queryClient.invalidateQueries({
-                queryKey: ['requests', 'active'],
+                queryKey: ['requests'],
             });
 
             onSuccess?.();

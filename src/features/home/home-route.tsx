@@ -24,6 +24,8 @@ const HomeRoute: FunctionComponent = () => {
     const { mutate: closeRequest } = useOpenRequestsRemove();
     const { mutate: setActiveRequest } = useActiveRequestUpdate();
 
+    console.log({ activeRequest, openRequests });
+
     const activeRequestIndex = findIndexById(
         activeRequest?.id,
         openRequests ?? [],

@@ -6,9 +6,7 @@ export function useActiveRequest() {
     return useQuery({
         queryKey: ['requests', 'active'],
         queryFn: async () => {
-            const response = await invoke<string>('get_active_request');
-
-            return JSON.parse(response) as Request;
+            return await invoke<Request | null>('get_active_request');
         },
     });
 }

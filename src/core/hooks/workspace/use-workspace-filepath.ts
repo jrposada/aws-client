@@ -5,9 +5,7 @@ export function useWorkspaceFilepath() {
     return useQuery({
         queryKey: ['workspace', 'filepath'],
         queryFn: async () => {
-            const response = await invoke<string>('get_workspace_filepath');
-
-            return response;
+            return await invoke<string>('get_workspace_filepath');
         },
     });
 }

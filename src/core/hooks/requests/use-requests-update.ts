@@ -31,6 +31,8 @@ export function useRequestsUpdate<
         unknown
     >({
         mutationFn: async ({ id, title, data }) => {
+            console.log('TODO: review');
+
             const response = await invoke<string>('put_requests', {
                 id,
                 title,

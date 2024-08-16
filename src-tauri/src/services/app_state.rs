@@ -13,7 +13,7 @@ use crate::{
     types::{request::Request, request_data::RequestData, request_type::RequestType},
 };
 
-const EXTENSION: &str = ".aws-client";
+// const EXTENSION: &str = ".aws-client";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SavedAppState {
@@ -194,6 +194,10 @@ impl AppState {
         // Second, update active request if it matches IDs.
         let mut active_request_guard = self.active_request.lock().await;
         if let Some(active_request) = active_request_guard.as_mut() {
+            info!(
+                "--- AppState.remove_open_request active requests exists {:?}",
+                active_request.id
+            );
             if active_request.id == id {
                 info!("--- AppState.remove_open_request is active");
                 let open_requests_guard = self.open_requests.lock().await;
@@ -348,7 +352,6 @@ impl AppState {
     }
 
     pub async fn set_active_request(&self, id: &str) -> Result<(), String> {
-        // FIXME: not working as expected.
         // TODO: invert ifs to reduce repetition.
         let open_requests = self.open_requests.lock().await;
 

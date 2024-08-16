@@ -6,9 +6,7 @@ export function useRequests() {
     return useQuery({
         queryKey: ['requests'],
         queryFn: async () => {
-            const response = await invoke<string>('get_requests');
-
-            return JSON.parse(response) as Request[];
+            return await invoke<Request[]>('get_requests');
         },
     });
 }
