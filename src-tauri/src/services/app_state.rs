@@ -1,19 +1,16 @@
 use log::info;
 use serde::{Deserialize, Serialize};
-use std::fs::File;
+use std::io::BufReader;
+use std::io::Write;
+use std::{fs::File, path::PathBuf};
 use tokio::sync::Mutex;
 use uuid::Uuid;
-// use std::io::Read;
-use std::io::Write;
-// use std::path::PathBuf;
 // use tauri::{ api::path::app_data_dir, AppHandle };
 
 use crate::{
     services::request_executor::RequestExecutor,
     types::{request::Request, request_data::RequestData, request_type::RequestType},
 };
-
-// const EXTENSION: &str = ".aws-client";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SavedAppState {
@@ -176,6 +173,56 @@ impl AppState {
         drop(active_request_guard);
 
         info!("<<< AppState.execute_request");
+        return Ok(());
+    }
+
+    pub async fn open(&self, filepath: &str) -> Result<(), String> {
+        info!(">>> AppState.open {:?}", filepath);
+
+        let filepath = PathBuf::from(filepath);
+
+        if !filepath.exists() {
+            return Err(format!("File not found {:?}", filepath));
+        }
+
+        let file = File::open(filepath).map_err(|err| format!("Could not open file {}", err))?;
+        let reader = BufReader::new(file);
+
+        let saved_state: SavedAppState = serde_json::from_reader(reader)
+            .map_err(|err| format!("Could not parse file {}", err))?;
+
+        let mut saved_active_request = self.saved_active_request.lock().await;
+        *saved_active_request = saved_state.saved_active_request;
+        drop(saved_active_request);
+
+        let mut saved_filepath = self.saved_filepath.lock().await;
+        *saved_filepath = saved_state.saved_filepath;
+        drop(saved_filepath);
+
+        let mut saved_open_requests = self.saved_open_requests.lock().await;
+        *saved_open_requests = saved_state.saved_open_requests;
+        drop(saved_open_requests);
+
+        let mut saved_requests = self.saved_requests.lock().await;
+        *saved_requests = saved_state.saved_requests;
+        drop(saved_requests);
+
+        let mut active_request = self.active_request.lock().await;
+        *active_request = saved_state.active_request;
+        drop(active_request);
+
+        let mut filepath = self.filepath.lock().await;
+        *filepath = saved_state.filepath;
+        drop(filepath);
+
+        let mut open_requests = self.open_requests.lock().await;
+        *open_requests = saved_state.open_requests;
+        drop(open_requests);
+
+        let mut requests = self.requests.lock().await;
+        *requests = saved_state.requests;
+        drop(requests);
+
         return Ok(());
     }
 
