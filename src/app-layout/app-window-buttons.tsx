@@ -4,13 +4,15 @@ import FilterNoneRoundedIcon from '@mui/icons-material/FilterNoneRounded';
 import HorizontalRuleRoundedIcon from '@mui/icons-material/HorizontalRuleRounded';
 import { SvgIconTypeMap } from '@mui/material';
 import { DefaultComponentProps } from '@mui/material/OverridableComponent';
-import { appWindow } from '@tauri-apps/api/window';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { FunctionComponent, MouseEventHandler, useState } from 'react';
 import { useWorkspaceService } from '../core/hooks/workspace-context/use-workspace-service';
 import useSnackbar from '../ui/snackbar/use-snackbar';
 import AppWindowButton, {
     AppWindowButtonProps,
 } from './styled/app-window-button';
+
+const appWindow = getCurrentWebviewWindow();
 
 const buttonProps: Partial<AppWindowButtonProps> = {
     color: 'inherit',

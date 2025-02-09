@@ -3,7 +3,7 @@ use std::fs::File;
 use std::io::Read;
 use std::io::Write;
 use std::path::PathBuf;
-use tauri::{api::path::app_data_dir, AppHandle};
+use tauri::{AppHandle, Manager};
 
 const EXTENSION: &str = ".aws-client";
 
@@ -22,8 +22,7 @@ pub async fn save_app_state(
         }
         PathBuf::from(custom_path)
     } else {
-        let app_data_dir: PathBuf =
-            app_data_dir(&app_handle.config()).ok_or("Failed to get app data directory")?;
+        let app_data_dir = app_handle.path().app_data_dir().unwrap();
         app_data_dir.join(format!("app_state{}", EXTENSION))
     };
 
@@ -47,8 +46,7 @@ pub fn load_app_state(app_handle: AppHandle, filepath: Option<String>) -> Result
         }
         PathBuf::from(custom_path)
     } else {
-        let app_data_dir: PathBuf =
-            app_data_dir(&app_handle.config()).ok_or("Failed to get app data directory")?;
+        let app_data_dir = app_handle.path().app_data_dir().unwrap();
         app_data_dir.join(format!("app_state{}", EXTENSION))
     };
 
