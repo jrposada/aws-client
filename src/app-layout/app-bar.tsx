@@ -1,11 +1,13 @@
 import { Toolbar, Typography, useTheme } from '@mui/material';
-import { appWindow } from '@tauri-apps/api/window';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { MouseEventHandler } from 'react';
 import { useWorkspaceService } from '../core/hooks/workspace-context/use-workspace-service';
 import AppIconButton from './app-icon-button';
 import AppWindowButtons from './app-window-buttons';
 import NewButton from './new-button';
 import StyledAppBar from './styled/app-bar';
+
+const appWindow = getCurrentWebviewWindow();
 
 type AppBarProps = {
     open: boolean;

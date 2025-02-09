@@ -1,5 +1,5 @@
-import { invoke } from '@tauri-apps/api';
-import { open, save } from '@tauri-apps/api/dialog';
+import { invoke } from '@tauri-apps/api/core';
+import { open, save } from '@tauri-apps/plugin-dialog';
 import { t } from 'i18next';
 import { Dispatch, SetStateAction } from 'react';
 import { v4 as uuid } from 'uuid';
