@@ -19,7 +19,7 @@ pub async fn delete_open_requests<'r>(
     info!(">>> delete_open_requests {:?}", id);
     app_state.remove_open_request(id)?;
     info!("<<< delete_open_requests {:?}", id);
-    Ok(())
+    return Ok(());
 }
 
 #[tauri::command]
@@ -30,7 +30,7 @@ pub async fn delete_requests<'r>(
     info!(">>> delete_requests {:?}", id);
     app_state.remove_request(id)?;
     info!("<<< delete_requests {:?}", id);
-    Ok(())
+    return Ok(());
 }
 
 #[tauri::command]
@@ -43,7 +43,7 @@ pub async fn get_active_request<'r>(
         Err(error) => Err(format!("{:?}", error)),
     };
     info!("<<< get_active_request");
-    result
+    return result;
 }
 
 #[tauri::command]
@@ -112,7 +112,7 @@ pub async fn put_requests<'r>(
     id: &str,
     title: &str,
     data: Option<&str>
-) -> Result<String, String> {
+) -> Result<(), String> {
     info!(">>> put_requests {:?}", id);
 
     let data: Option<RequestData> = match data {
@@ -127,12 +127,8 @@ pub async fn put_requests<'r>(
         None => None,
     };
 
-    let request = app_state.update_request(id, title, data)?;
-    let result = match serde_json::to_string(&request) {
-        Ok(value) => Ok(value.to_string()),
-        Err(error) => Err(format!("{:?}", error)),
-    };
+    app_state.update_request(id, title, data)?;
 
     info!("<<< put_requests {:?}", id);
-    return result;
+    return Ok(());
 }

@@ -1,9 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { invoke } from '@tauri-apps/api/core';
 import useSnackbar from '../../../ui/snackbar/use-snackbar';
-import { Request } from '../../types/request';
-import { RequestType } from '../../types/request-type';
 import { RequestData } from '../../types/request-data';
+import { RequestType } from '../../types/request-type';
 
 type UseRequestsUpdateParams = {
     onError?: (message: string) => void;
@@ -25,19 +24,17 @@ export function useRequestsUpdate<
     const { enqueueAutoHideSnackbar } = useSnackbar();
 
     return useMutation<
-        Request,
+        void,
         string,
         UseRequestsUpdateMutationParams<TRequestType>,
         unknown
     >({
         mutationFn: async ({ id, title, data }) => {
-            const response = await invoke<string>('put_requests', {
+            await invoke<string>('put_requests', {
                 id,
                 title,
                 data: JSON.stringify(data),
             });
-
-            return JSON.parse(response) as Request;
         },
         onError: (message) => {
             enqueueAutoHideSnackbar({

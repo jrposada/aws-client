@@ -1,10 +1,10 @@
 use log::LevelFilter;
-use tauri::AppHandle;
+use tauri::{AppHandle, Manager};
 
 /** Setup logger file. Log traces will also be output to standard output. Logger file location is `<app_data_dir>/logs/<date>.log` */
 pub fn setup_logger(app_handle: &AppHandle) -> Result<(), fern::InitError> {
     // Get tauri data directory.
-    let mut log_dir = app_handle.path_resolver().app_data_dir().unwrap();
+    let mut log_dir = app_handle.path().app_data_dir().unwrap();
 
     // Create logs folder if it does not exist.
     log_dir.push("logs");

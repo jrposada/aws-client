@@ -3,9 +3,10 @@ import { Divider } from '@mui/material';
 import { t } from 'i18next';
 import { FunctionComponent, MouseEventHandler, useRef } from 'react';
 import { useWorkspaceFilepath } from '../core/hooks/workspace/use-workspace-filepath';
+import { useWorkspaceOpen } from '../core/hooks/workspace/use-workspace-open';
 import { useWorkspaceSave } from '../core/hooks/workspace/use-workspace-save';
 import { useWorkspaceSaveAs } from '../core/hooks/workspace/use-workspace-save-as';
-import { saveAsDialog } from '../core/utils/system-dialog';
+import { saveAsDialog, openDialog } from '../core/utils/system-dialog';
 import MenuButton from '../ui/menu-button/menu-button';
 import MenuButtonItem from '../ui/menu-button/menu-button-item';
 import { MenuButtonService } from '../ui/menu-button/menu-button-service';
@@ -13,13 +14,16 @@ import AppBarIconButton from './styled/app-bar-icon-button';
 
 const AppIconButton: FunctionComponent = () => {
     const { data: filepath } = useWorkspaceFilepath();
+    const { mutate: open } = useWorkspaceOpen();
     const { mutate: save } = useWorkspaceSave();
     const { mutate: saveAs } = useWorkspaceSaveAs();
     const menuButtonService = useRef<MenuButtonService>(null);
 
-    const handleOpen: MouseEventHandler<HTMLLIElement> = () => {
-        // requestService.openWorkspace();
-        console.log('TODO open');
+    const handleOpen: MouseEventHandler<HTMLLIElement> = async () => {
+        const filepath = await openDialog();
+        if (filepath) {
+            open(filepath);
+        }
     };
 
     const handleSave: MouseEventHandler<HTMLLIElement> = async () => {

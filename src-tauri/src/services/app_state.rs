@@ -1,12 +1,11 @@
 use log::info;
 use serde::{ Deserialize, Serialize };
 use std::fs::File;
+use std::io::Read;
+use std::io::Write;
+use std::path::PathBuf;
 use std::sync::Mutex;
 use uuid::Uuid;
-// use std::io::Read;
-use std::io::Write;
-// use std::path::PathBuf;
-// use tauri::{ api::path::app_data_dir, AppHandle };
 
 use crate::{
     services::request_executor::RequestExecutor,
@@ -192,6 +191,37 @@ impl AppState {
         drop(active_request_guard);
 
         info!("<<< AppState.execute_request");
+        return Ok(());
+    }
+
+    /** Open workspace */
+    pub fn open(&self, filepath: &str) -> Result<(), String> {
+        info!("AppState.open {:?}", filepath);
+
+        let filepath: PathBuf = PathBuf::from(filepath);
+    
+        if !filepath.exists() {
+            return Err(format!("File does not exist"));
+        }
+    
+        let mut file = File::open(filepath).map_err(|e| e.to_string())?;
+        let mut json = String::new();
+        file.read_to_string(&mut json).map_err(|e| e.to_string())?;
+    
+        // Deserialize the JSON string into our SavedAppState struct.
+        let saved_state: SavedAppState = serde_json::from_str(&json)
+            .map_err(|e| format!("Failed to parse JSON: {}", e))?;
+
+        // Update each field in the AppState by acquiring the locks.
+        *self.saved_active_request.lock().unwrap() = saved_state.saved_active_request;
+        *self.saved_filepath.lock().unwrap() = saved_state.saved_filepath;
+        *self.saved_open_requests.lock().unwrap() = saved_state.saved_open_requests;
+        *self.saved_requests.lock().unwrap() = saved_state.saved_requests;
+        *self.active_request.lock().unwrap() = saved_state.active_request;
+        *self.filepath.lock().unwrap() = saved_state.filepath;
+        *self.open_requests.lock().unwrap() = saved_state.open_requests;
+        *self.requests.lock().unwrap() = saved_state.requests;
+
         return Ok(());
     }
 
@@ -425,6 +455,7 @@ impl AppState {
 
         return Err(format!("Cannot set current id. ID {:?} not found", id));
 
+        // TODO: is this needed?
         // Open requests
         // const next: WorkspaceServiceState = { ...prev };
         //         let request = findById(id, prev.openRequests);

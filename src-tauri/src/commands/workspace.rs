@@ -14,6 +14,17 @@ pub async fn get_workspace_filepath<'r>(
 }
 
 #[tauri::command]
+pub async fn post_workspace_open<'r>(
+    app_state: State<'r, AppState>,
+    filepath: &str
+) -> Result<(), String> {
+    info!(">>> post_workspace_open_active_as {:?}", filepath);
+    app_state.open(filepath)?;
+    info!("<<< post_workspace_open_active_as {:?}", filepath);
+    return Ok(());
+}
+
+#[tauri::command]
 pub async fn post_workspace_save_active_as<'r>(
     app_state: State<'r, AppState>,
     filepath: &str
