@@ -4,13 +4,14 @@ import FilterNoneRoundedIcon from '@mui/icons-material/FilterNoneRounded';
 import HorizontalRuleRoundedIcon from '@mui/icons-material/HorizontalRuleRounded';
 import { SvgIconTypeMap } from '@mui/material';
 import { DefaultComponentProps } from '@mui/material/OverridableComponent';
-import { appWindow } from '@tauri-apps/api/window';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { FunctionComponent, MouseEventHandler, useState } from 'react';
 import { useWorkspaceSave } from '../core/hooks/workspace/use-workspace-save';
 import AppWindowButton, {
     AppWindowButtonProps,
 } from './styled/app-window-button';
 
+const appWindow = getCurrentWebviewWindow();
 const closeOnErrorMs = 2000;
 
 const buttonProps: Partial<AppWindowButtonProps> = {

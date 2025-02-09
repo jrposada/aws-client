@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { invoke } from '@tauri-apps/api';
+import { invoke } from '@tauri-apps/api/core';
 import { t } from 'i18next';
 import useSnackbar from '../../../ui/snackbar/use-snackbar';
 import { Request } from '../../types/request';

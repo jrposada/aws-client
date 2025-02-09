@@ -1,4 +1,4 @@
-import { save as saveDialog } from '@tauri-apps/api/dialog';
+import { save as saveDialog } from '@tauri-apps/plugin-dialog';
 
 const EXTENSION = 'aws-client';
 

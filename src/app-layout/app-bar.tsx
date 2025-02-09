@@ -1,11 +1,13 @@
 import { Toolbar, Typography, useTheme } from '@mui/material';
-import { appWindow } from '@tauri-apps/api/window';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { MouseEventHandler, useMemo } from 'react';
 import { useWorkspaceFilepath } from '../core/hooks/workspace/use-workspace-filepath';
 import AppIconButton from './app-icon-button';
 import AppWindowButtons from './app-window-buttons';
 import NewButton from './new-button';
 import StyledAppBar from './styled/app-bar';
+
+const appWindow = getCurrentWebviewWindow();
 
 type AppBarProps = {
     open: boolean;
@@ -83,4 +85,3 @@ const AppBar: React.FunctionComponent<AppBarProps> = ({ open }) => {
 };
 
 export default AppBar;
-1;
