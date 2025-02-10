@@ -6,7 +6,9 @@ _This guide assumes you are using a Linux system like WSL or Ubuntu._
 
 1. [Rust](https://www.rust-lang.org/tools/install)
 
-2. Tauri setup. Official Linux [instructions](https://v2.tauri.app/start/prerequisites/#linux).
+2. `rustup component add rust-analyzer`
+
+3. Tauri setup. Official Linux [instructions](https://v2.tauri.app/start/prerequisites/#linux).
 
 ## Getting started
 

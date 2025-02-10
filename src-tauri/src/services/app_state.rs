@@ -5,7 +5,6 @@ use std::io::Read;
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::RwLock;
-use tauri::async_runtime::Mutex;
 use uuid::Uuid;
 
 use crate::{
@@ -100,21 +99,24 @@ impl AppState {
 
         // Add to requests
         info!("--- AppState.add_request add to requests");
-        let mut requests_guard = self.requests.write().unwrap();
-        requests_guard.push(request.clone());
-        drop(requests_guard);
+        {
+            let mut requests_guard = self.requests.write().unwrap();
+            requests_guard.push(request.clone());
+        }
 
         // Add to open requests
         info!("--- AppState.add_request add to open requests");
-        let mut open_requests_guard = self.open_requests.write().unwrap();
-        open_requests_guard.push(request.id.clone());
-        drop(open_requests_guard);
+        {
+            let mut open_requests_guard = self.open_requests.write().unwrap();
+            open_requests_guard.push(request.id.clone());
+        }
 
         // Set as active
         info!("--- AppState.add_request set as active requests");
-        let mut active_request_guard = self.active_request.write().unwrap();
-        *active_request_guard = Some(request.id.clone());
-        drop(active_request_guard);
+        {
+            let mut active_request_guard = self.active_request.write().unwrap();
+            *active_request_guard = Some(request.id.clone());
+        }
 
         info!("<<< AppState.add_request {:?}", request_type);
         return Ok(());
@@ -122,19 +124,36 @@ impl AppState {
 
     pub async fn execute_request(&self, id: &str) -> Result<(), String> {
         info!(">>> AppState.execute_request");
-
-        info!("--- AppState.execute_request update in requests");
-        let mut requests_guard = self.requests.write().unwrap();
-        match requests_guard.iter_mut().find(|item| item.id == id) {
-            Some(request) => {
-                let result = RequestExecutor::execute(request).await?;
-                request.safe_set_result(result)?;
-            }
-            None => {
-                return Err(format!("Could not find request {:?}", id));
+        let request: Request;
+        
+        info!("--- AppState.execute_request find request");
+        {
+            let mut requests_guard = self.requests.write().unwrap();
+            match requests_guard.iter_mut().find(|item| item.id == id) {
+                Some(some_request) => {
+                    request = some_request.clone();
+                }
+                None => {
+                    return Err(format!("Could not find request {:?}", id));
+                }
             }
         }
-        drop(requests_guard);
+
+        info!("--- AppState.execute_request execute");
+        let result = RequestExecutor::execute(request.clone()).await?;
+        
+        info!("--- AppState.execute_request set request result");
+        {
+            let mut requests_guard = self.requests.write().unwrap();
+            match requests_guard.iter_mut().find(|item| item.id == id) {
+                Some(some_request) => {
+                    some_request.safe_set_result(result)?;
+                }
+                None => {
+                    return Err(format!("Could not find request {:?}", id));
+                }
+            }
+        }
 
         info!("<<< AppState.execute_request");
         return Ok(());
@@ -159,14 +178,16 @@ impl AppState {
             serde_json::from_str(&json).map_err(|e| format!("Failed to parse JSON: {}", e))?;
 
         // Update each field in the AppState by acquiring the locks.
-        *self.saved_active_request.write().unwrap() = saved_state.saved_active_request;
-        *self.saved_filepath.write().unwrap() = saved_state.saved_filepath;
-        *self.saved_open_requests.write().unwrap() = saved_state.saved_open_requests;
-        *self.saved_requests.write().unwrap() = saved_state.saved_requests;
-        *self.active_request.write().unwrap() = saved_state.active_request;
-        *self.filepath.write().unwrap() = saved_state.filepath;
-        *self.open_requests.write().unwrap() = saved_state.open_requests;
-        *self.requests.write().unwrap() = saved_state.requests;
+        {
+            *self.saved_active_request.write().unwrap() = saved_state.saved_active_request;
+            *self.saved_filepath.write().unwrap() = saved_state.saved_filepath;
+            *self.saved_open_requests.write().unwrap() = saved_state.saved_open_requests;
+            *self.saved_requests.write().unwrap() = saved_state.saved_requests;
+            *self.active_request.write().unwrap() = saved_state.active_request;
+            *self.filepath.write().unwrap() = saved_state.filepath;
+            *self.open_requests.write().unwrap() = saved_state.open_requests;
+            *self.requests.write().unwrap() = saved_state.requests;
+        }
 
         return Ok(());
     }
@@ -175,37 +196,40 @@ impl AppState {
         info!(">>> AppState.remove_open_request {:?}", id);
 
         // First, remove from open requests if it is open.
-        let mut open_requests_guard = self.open_requests.write().unwrap();
-        if let Some(open_request_index) = open_requests_guard
-            .iter()
-            .position(|open_request_id| *open_request_id == id)
         {
-            info!("--- AppState.remove_open_request remove");
-            open_requests_guard.remove(open_request_index);
-        }
-        drop(open_requests_guard);
-
-        // Second, update active request if it matches IDs.
-        let mut active_request_guard = self.active_request.write().unwrap();
-        if let Some(active_request_id) = active_request_guard.as_mut() {
-            if active_request_id == id {
-                info!("--- AppState.remove_open_request is active");
-                let open_requests_guard = self.open_requests.write().unwrap();
-                if let Some(last_request_id) = open_requests_guard.last() {
-                    info!(
-                        "--- AppState.remove_open_request set {:?} as active",
-                        last_request_id
-                    );
-                    *active_request_id = last_request_id.clone();
-                } else {
-                    // If there is no last request, we should clear the active_request
-                    info!("--- AppState.remove_open_request no candidate for active");
-                    *active_request_guard = None;
-                }
-                drop(open_requests_guard);
+            let mut open_requests_guard = self.open_requests.write().unwrap();
+            if let Some(open_request_index) = open_requests_guard
+                .iter()
+                .position(|open_request_id| *open_request_id == id)
+            {
+                info!("--- AppState.remove_open_request remove");
+                open_requests_guard.remove(open_request_index);
             }
         }
-        drop(active_request_guard);
+
+        // Second, update active request if it matches IDs.
+        {
+            let mut active_request_guard = self.active_request.write().unwrap();
+            if let Some(active_request_id) = active_request_guard.as_mut() {
+                if active_request_id == id {
+                    info!("--- AppState.remove_open_request is active");
+                    {
+                        let open_requests_guard = self.open_requests.write().unwrap();
+                        if let Some(last_request_id) = open_requests_guard.last() {
+                            info!(
+                                "--- AppState.remove_open_request set {:?} as active",
+                                last_request_id
+                            );
+                            *active_request_id = last_request_id.clone();
+                        } else {
+                            // If there is no last request, we should clear the active_request
+                            info!("--- AppState.remove_open_request no candidate for active");
+                            *active_request_guard = None;
+                        }
+                    }
+                }
+            }
+        }
 
         info!("<<< AppState.remove_open_request {:?}", id);
         return Ok(());
@@ -215,16 +239,17 @@ impl AppState {
         info!(">>> AppState.remove_request {:?}", id);
 
         // First, remove request from workspace requests.
-        let mut requests_guard = self.requests.write().unwrap();
-        let request_index = requests_guard
-            .iter()
-            .position(|item| item.id == id)
-            .unwrap();
-        requests_guard.remove(request_index);
-        drop(requests_guard);
+        {
+            let mut requests_guard = self.requests.write().unwrap();
+            let request_index = requests_guard
+                .iter()
+                .position(|item| item.id == id)
+                .unwrap();
+            requests_guard.remove(request_index);
+        }
 
         // Second, remove from open requests if it is open.
-        self.remove_open_request(id).await;
+        self.remove_open_request(id).await?;
 
         info!("<<< AppState.remove_request {:?}", id);
         return Ok(());
@@ -234,9 +259,10 @@ impl AppState {
         info!(">>> AppState.save_as {:?}", filepath);
 
         info!("--- AppState.save_as set filepath");
-        let mut filepath_guard = self.filepath.write().unwrap();
-        *filepath_guard = Some(filepath.to_string());
-        drop(filepath_guard);
+        {
+            let mut filepath_guard = self.filepath.write().unwrap();
+            *filepath_guard = Some(filepath.to_string());
+        }
 
         self.save().await?;
 
@@ -248,19 +274,21 @@ impl AppState {
     pub async fn save(&self) -> Result<(), String> {
         info!(">>> AppState.save");
 
-        let filepath_guard = self.filepath.read().unwrap();
-        if let None = *filepath_guard {
-            info!("--- AppState.save no filepath to save to");
-            return Err(format!("No filepath to save to"));
+        {
+            let filepath_guard = self.filepath.read().unwrap();
+            if let None = *filepath_guard {
+                info!("--- AppState.save no filepath to save to");
+                return Err(format!("No filepath to save to"));
+            }
         }
-        drop(filepath_guard);
 
         info!("--- AppState.save set `isDirty` flags to false for requests");
-        let mut requests_guard = self.requests.write().unwrap();
-        for request in requests_guard.iter_mut() {
-            request.is_dirty = false;
+        {
+            let mut requests_guard = self.requests.write().unwrap();
+            for request in requests_guard.iter_mut() {
+                request.is_dirty = false;
+            }
         }
-        drop(requests_guard);
 
         info!("--- AppState.save copy memory state to saved state: active request");
         {
@@ -282,26 +310,27 @@ impl AppState {
 
         // Save to file
         info!("--- AppState.save save to file");
-        let filepath_guard = self.filepath.read().unwrap();
-        if let Some(ref filepath) = *filepath_guard {
-            info!("--- AppState.save lock state");
-            let saved_state = SavedAppState {
-                saved_active_request: self.saved_active_request.read().unwrap().clone(),
-                saved_filepath: self.saved_filepath.read().unwrap().clone(),
-                saved_open_requests: self.saved_open_requests.read().unwrap().clone(),
-                saved_requests: self.saved_requests.read().unwrap().clone(),
-                active_request: self.active_request.read().unwrap().clone(),
-                filepath: filepath_guard.clone(),
-                open_requests: self.open_requests.read().unwrap().clone(),
-                requests: self.requests.read().unwrap().clone(),
-            };
-            let state = serde_json::to_string(&saved_state).unwrap();
-            AppState::save_to_file(filepath, &state)?;
-        } else {
-            info!("--- AppState.save no filepath at write time");
-            return Err(format!("No filepath at write time"));
+        {
+            let filepath_guard = self.filepath.read().unwrap();
+            if let Some(ref filepath) = *filepath_guard {
+                info!("--- AppState.save lock state");
+                let saved_state = SavedAppState {
+                    saved_active_request: self.saved_active_request.read().unwrap().clone(),
+                    saved_filepath: self.saved_filepath.read().unwrap().clone(),
+                    saved_open_requests: self.saved_open_requests.read().unwrap().clone(),
+                    saved_requests: self.saved_requests.read().unwrap().clone(),
+                    active_request: self.active_request.read().unwrap().clone(),
+                    filepath: filepath_guard.clone(),
+                    open_requests: self.open_requests.read().unwrap().clone(),
+                    requests: self.requests.read().unwrap().clone(),
+                };
+                let state = serde_json::to_string(&saved_state).unwrap();
+                AppState::save_to_file(filepath, &state)?;
+            } else {
+                info!("--- AppState.save no filepath at write time");
+                return Err(format!("No filepath at write time"));
+            }
         }
-        drop(filepath_guard);
 
         info!("<<< AppState.save");
         return Ok(());
@@ -310,9 +339,10 @@ impl AppState {
     /** Save only active */
     pub async fn save_active_as(&self, filepath: &str) -> Result<(), String> {
         // Update flag for active
-        let mut filepath_guard = self.filepath.write().unwrap();
-        *filepath_guard = Some(filepath.to_string());
-        drop(filepath_guard);
+        {
+            let mut filepath_guard = self.filepath.write().unwrap();
+            *filepath_guard = Some(filepath.to_string());
+        }
 
         self.save_active()?;
 
@@ -330,35 +360,41 @@ impl AppState {
     pub async fn set_active_request(&self, id: &str) -> Result<(), String> {
         // FIXME: not working as expected.
         // TODO: invert ifs to reduce repetition.
-        let open_requests = self.open_requests.read().unwrap();
-
-        // Find the request in open_requests
-        if let Some(request_id) = open_requests
-            .iter()
-            .find(|open_request_id| *open_request_id == id)
         {
-            // Set active request
-            let mut active_request = self.active_request.write().unwrap();
-            *active_request = Some(request_id.clone());
-            return Ok(());
+            let open_requests = self.open_requests.read().unwrap();
+
+            // Find the request in open_requests
+            if let Some(request_id) = open_requests
+                .iter()
+                .find(|open_request_id| *open_request_id == id)
+            {
+                // Set active request
+                {
+                    let mut active_request = self.active_request.write().unwrap();
+                    *active_request = Some(request_id.clone());
+                }
+                return Ok(());
+            }
         }
 
-        drop(open_requests);
-
         // Need to open request first.
-        let requests = self.requests.read().unwrap();
+        {
+            let requests = self.requests.read().unwrap();
 
-        if let Some(request) = requests.iter().find(|item| item.id == id) {
-            // Reacquire the open_requests lock to modify it
-            let mut open_requests = self.open_requests.write().unwrap();
-            open_requests.push(request.id.clone());
-            drop(open_requests);
+            if let Some(request) = requests.iter().find(|item| item.id == id) {
+                // Reacquire the open_requests lock to modify it
+                {
+                    let mut open_requests = self.open_requests.write().unwrap();
+                    open_requests.push(request.id.clone());
+                }
 
-            // Set active request
-            let mut active_request = self.active_request.write().unwrap();
-            *active_request = Some(request.id.clone());
-            drop(active_request);
-            return Ok(());
+                // Set active request
+                {
+                    let mut active_request = self.active_request.write().unwrap();
+                    *active_request = Some(request.id.clone());
+                }
+                return Ok(());
+            }
         }
 
         return Err(format!("Cannot set current id. ID {:?} not found", id));
@@ -391,17 +427,18 @@ impl AppState {
         info!(">>> AppState.update_request {:?}", id);
 
         info!("--- AppState.update_request update in requests");
-        let mut requests_guard = self.requests.write().unwrap();
-        match requests_guard.iter_mut().find(|item| item.id == id) {
-            Some(request) => {
-                request.title = title.to_string();
-                request.safe_set_data(data.clone())?;
-            }
-            None => {
-                return Err(format!("Could not find request {:?}", id));
+        {
+            let mut requests_guard = self.requests.write().unwrap();
+            match requests_guard.iter_mut().find(|item| item.id == id) {
+                Some(request) => {
+                    request.title = title.to_string();
+                    request.safe_set_data(data.clone())?;
+                }
+                None => {
+                    return Err(format!("Could not find request {:?}", id));
+                }
             }
         }
-        drop(requests_guard);
 
         info!("<<< AppState.update_request {:?}", id);
         return Ok(());

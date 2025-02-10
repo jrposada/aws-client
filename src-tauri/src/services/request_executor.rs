@@ -25,7 +25,7 @@ pub struct RequestExecutor {}
 
 impl RequestExecutor {
     pub async fn execute(
-        request: &Request
+        request: Request
     ) -> Result<Option<RequestResult>, String> {
         match request.request_type {
             RequestType::Rds => {

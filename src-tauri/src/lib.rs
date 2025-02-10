@@ -19,6 +19,7 @@ use commands::requests::{
 };
 use commands::workspace::{
     get_workspace_filepath,
+    post_workspace_open,
     post_workspace_save_active_as,
     post_workspace_save_active,
     post_workspace_save_as,
@@ -26,6 +27,7 @@ use commands::workspace::{
 };
 use infrastructure::logger::setup_logger;
 use services::app_state::AppState;
+use tauri::Manager;
 
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -44,6 +46,7 @@ pub fn run() {
                 post_active_request,
                 post_requests_execute,
                 post_requests,
+                post_workspace_open,
                 post_workspace_save_active_as,
                 post_workspace_save_active,
                 post_workspace_save_as,
@@ -52,7 +55,7 @@ pub fn run() {
         ])
         .setup(|app| {
             setup_logger(&app.handle()).expect("Failed to set up logger");
-            info!("Application started");
+            info!("Application started ({:?})", app.path().app_data_dir().unwrap().to_str());
             Ok(())
         })
         .run(tauri::generate_context!())

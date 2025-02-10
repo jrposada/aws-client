@@ -96,7 +96,7 @@ pub async fn post_requests_execute<'r>(
     id: &str
 ) -> Result<(), String> {
     info!(">>> post_requests_execute {:?}", id);
-    app_state.execute_request(id).await;
+    app_state.execute_request(id).await?;
     info!("<<< post_requests_execute {:?}", id);
     return Ok(());
 }
