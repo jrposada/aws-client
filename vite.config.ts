@@ -1,58 +1,31 @@
-/// <reference types="vitest" />
-import react from '@vitejs/plugin-react-swc';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+const host = process.env.TAURI_DEV_HOST;
 
 // https://vitejs.dev/config/
-const config = ({ mode }: { mode: string }) => {
-    process.env = { ...process.env, ...loadEnv(mode, process.cwd()) };
+export default defineConfig(async () => ({
+  plugins: [react()],
 
-    return defineConfig({
-        // prevent vite from obscuring rust errors
-        clearScreen: false,
-
-        // Tauri expects a fixed port, fail if that port is not available
-        server: {
-            port: parseInt(process.env.VITE_PORT!),
-            strictPort: true,
-        },
-
-        // to make use of `TAURI_PLATFORM`, `TAURI_ARCH`, `TAURI_FAMILY`,
-        // `TAURI_PLATFORM_VERSION`, `TAURI_PLATFORM_TYPE` and `TAURI_DEBUG`
-        // env variables
-        envPrefix: [
-            'VITE_',
-            'TAURI_PLATFORM',
-            'TAURI_ARCH',
-            'TAURI_FAMILY',
-            'TAURI_PLATFORM_VERSION',
-            'TAURI_PLATFORM_TYPE',
-            'TAURI_DEBUG',
-        ],
-
-        build: {
-            // Tauri uses Chromium on Windows and WebKit on macOS and Linux
-            target:
-                process.env.TAURI_PLATFORM == 'windows'
-                    ? 'chrome105'
-                    : 'safari13',
-            // don't minify for debug builds
-            minify: !process.env.TAURI_DEBUG ? 'esbuild' : false,
-            // produce sourcemaps for debug builds
-            sourcemap: !!process.env.TAURI_DEBUG,
-        },
-
-        plugins: [react()],
-        test: {
-            environment: 'jsdom',
-            coverage: {
-                thresholds: {
-                    branches: 0,
-                    functions: 0,
-                    lines: 0,
-                },
-            },
-        },
-    });
-};
-
-export default config;
+  // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
+  //
+  // 1. prevent vite from obscuring rust errors
+  clearScreen: false,
+  // 2. tauri expects a fixed port, fail if that port is not available
+  server: {
+    port: 1420,
+    strictPort: true,
+    host: host || false,
+    hmr: host
+      ? {
+          protocol: "ws",
+          host,
+          port: 1421,
+        }
+      : undefined,
+    watch: {
+      // 3. tell vite to ignore watching `src-tauri`
+      ignored: ["**/src-tauri/**"],
+    },
+  },
+}));

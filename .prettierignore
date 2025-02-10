@@ -6,4 +6,5 @@
 *.svg
 /.husky
 /.vscode
+/src-tauri/gen
 /src-tauri/target
