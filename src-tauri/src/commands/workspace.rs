@@ -8,7 +8,7 @@ pub async fn get_workspace_filepath<'r>(
     app_state: State<'r, AppState>
 ) -> Result<Option<String>, String> {
     info!(">>> get_workspace_filepath");
-    let filepath_guard = app_state.filepath.lock().unwrap();
+    let filepath_guard = app_state.filepath.read().unwrap();
     info!("<<< get_workspace_filepath");
     return Ok(filepath_guard.clone());
 }
@@ -30,7 +30,7 @@ pub async fn post_workspace_save_active_as<'r>(
     filepath: &str
 ) -> Result<(), String> {
     info!(">>> post_workspace_save_active_as {:?}", filepath);
-    app_state.save_active_as(filepath)?;
+    app_state.save_active_as(filepath).await?;
     info!("<<< post_workspace_save_active_as {:?}", filepath);
     return Ok(());
 }
@@ -51,7 +51,7 @@ pub async fn post_workspace_save_as<'r>(
     filepath: &str
 ) -> Result<(), String> {
     info!(">>> post_workspace_save_as {:?}", filepath);
-    app_state.save_as(filepath)?;
+    app_state.save_as(filepath).await?;
     info!("<<< post_workspace_save_as {:?}", filepath);
     return Ok(());
 }
@@ -61,7 +61,7 @@ pub async fn post_workspace_save<'r>(
     app_state: State<'r, AppState>
 ) -> Result<(), String> {
     info!(">>> post_workspace_save");
-    app_state.save()?;
+    app_state.save().await?;
     info!("<<< post_workspace_save");
     return Ok(());
 }

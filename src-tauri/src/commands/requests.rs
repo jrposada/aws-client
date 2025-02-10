@@ -15,7 +15,7 @@ pub async fn delete_open_requests<'r>(
     id: &str
 ) -> Result<(), String> {
     info!(">>> delete_open_requests {:?}", id);
-    app_state.remove_open_request(id)?;
+    app_state.remove_open_request(id).await?;
     info!("<<< delete_open_requests {:?}", id);
     return Ok(());
 }
@@ -26,7 +26,7 @@ pub async fn delete_requests<'r>(
     id: &str
 ) -> Result<(), String> {
     info!(">>> delete_requests {:?}", id);
-    app_state.remove_request(id)?;
+    app_state.remove_request(id).await?;
     info!("<<< delete_requests {:?}", id);
     return Ok(());
 }
@@ -36,7 +36,7 @@ pub async fn get_active_request<'r>(
     app_state: State<'r, AppState>
 ) -> Result<Option<String>, String> {
     info!(">>> get_active_request");
-    let active_request_guard = app_state.active_request.lock().unwrap();
+    let active_request_guard = app_state.active_request.read().unwrap();
     info!("<<< get_active_request");
     return Ok(active_request_guard.clone());
 }
@@ -73,7 +73,7 @@ pub async fn post_active_request<'r>(
     id: &str
 ) -> Result<(), String> {
     info!(">>> post_active_request {:?}", id);
-    app_state.set_active_request(id)?;
+    app_state.set_active_request(id).await?;
     info!("<<< post_active_request {:?}", id);
     return Ok(());
 }
@@ -85,7 +85,7 @@ pub async fn post_requests<'r>(
     title: &str
 ) -> Result<(), String> {
     info!(">>> post_requests {:?}", request_type);
-    app_state.add_request(request_type.parse::<RequestType>()?, title)?;
+    app_state.add_request(request_type.parse::<RequestType>()?, title).await?;
     info!("<<< post_requests {:?}", request_type);
     return Ok(());
 }
@@ -122,7 +122,7 @@ pub async fn put_requests<'r>(
         None => None,
     };
 
-    app_state.update_request(id, title, data)?;
+    app_state.update_request(id, title, data).await?;
 
     info!("<<< put_requests {:?}", id);
     return Ok(());
