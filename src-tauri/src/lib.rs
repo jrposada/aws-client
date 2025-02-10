@@ -1,6 +1,3 @@
-// Prevents additional console window on Windows in release, DO NOT REMOVE!!
-#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
 use log::info;
 
 mod commands;
@@ -33,12 +30,11 @@ use services::app_state::AppState;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    tauri::Builder
-        ::default()
+    tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
         .manage(AppState::new())
-        .invoke_handler(
-            tauri::generate_handler![
-                delete_open_requests,
+        .invoke_handler(tauri::generate_handler![
+            delete_open_requests,
                 delete_requests,
                 get_active_request,
                 get_open_requests,
@@ -53,8 +49,7 @@ pub fn run() {
                 post_workspace_save_as,
                 post_workspace_save,
                 put_requests
-            ]
-        )
+        ])
         .setup(|app| {
             setup_logger(&app.handle()).expect("Failed to set up logger");
             info!("Application started");

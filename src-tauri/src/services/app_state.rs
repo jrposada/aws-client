@@ -20,54 +20,53 @@ const EXTENSION: &str = ".aws-client";
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct SavedAppState {
-    /** According state write to file system, request currently active in the frontend. */
-    pub saved_active_request: Option<Request>,
+    /** According state write to file system, request ID currently active in the frontend. */
+    pub saved_active_request: Option<String>,
 
     /** According state write to file system, filepath of this file. */
     pub saved_filepath: Option<String>,
 
-    /** According state write to file system, open requests in the frontend. */
-    pub saved_open_requests: Vec<Request>,
+    /** According state write to file system, open requests IDs in the frontend. */
+    pub saved_open_requests: Vec<String>,
 
     /** According state write to file system, complete list of all requests in the workspace. */
     pub saved_requests: Vec<Request>,
 
-    /** According state in memory, request currently active in the frontend. */
-    pub active_request: Option<Request>,
+    /** According state in memory, request ID currently active in the frontend. */
+    pub active_request: Option<String>,
 
     /** According state in memory, filepath of this file. */
     pub filepath: Option<String>,
 
-    /** According state in memory, open requests in the frontend. */
-    pub open_requests: Vec<Request>,
+    /** According state in memory, open requests IDs in the frontend. */
+    pub open_requests: Vec<String>,
 
     /** According state in memory, complete list of all requests in the workspace. */
     pub requests: Vec<Request>,
 }
 
-// TODO: simplify step open requests and active requests variables should only hold ids
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AppState {
-    /** According state write to file system, request currently active in the frontend. */
-    pub saved_active_request: Mutex<Option<Request>>,
+    /** According state write to file system, request ID currently active in the frontend. */
+    pub saved_active_request: Mutex<Option<String>>,
 
     /** According state write to file system, filepath of this file. */
     pub saved_filepath: Mutex<Option<String>>,
 
-    /** According state write to file system, open requests in the frontend. */
-    pub saved_open_requests: Mutex<Vec<Request>>,
+    /** According state write to file system, open requests IDs in the frontend. */
+    pub saved_open_requests: Mutex<Vec<String>>,
 
     /** According state write to file system, complete list of all requests in the workspace. */
     pub saved_requests: Mutex<Vec<Request>>,
 
-    /** According state in memory, request currently active in the frontend. */
-    pub active_request: Mutex<Option<Request>>,
+    /** According state in memory, request ID currently active in the frontend. */
+    pub active_request: Mutex<Option<String>>,
 
     /** According state in memory, filepath of this file. */
     pub filepath: Mutex<Option<String>>,
 
-    /** According state in memory, open requests in the frontend. */
-    pub open_requests: Mutex<Vec<Request>>,
+    /** According state in memory, open requests IDs in the frontend. */
+    pub open_requests: Mutex<Vec<String>>,
 
     /** According state in memory, complete list of all requests in the workspace. */
     pub requests: Mutex<Vec<Request>>,
@@ -115,13 +114,13 @@ impl AppState {
         // Add to open requests
         info!("--- AppState.add_request add to open requests");
         let mut open_requests_guard = self.open_requests.lock().unwrap();
-        open_requests_guard.push(request.clone());
+        open_requests_guard.push(request.id.clone());
         drop(open_requests_guard);
 
         // Set as active
         info!("--- AppState.add_request set as active requests");
         let mut active_request_guard = self.active_request.lock().unwrap();
-        *active_request_guard = Some(request.clone());
+        *active_request_guard = Some(request.id.clone());
         drop(active_request_guard);
 
         info!("<<< AppState.add_request {:?}", request_type);
@@ -147,48 +146,6 @@ impl AppState {
             }
         }
         drop(requests_guard);
-
-        info!("--- AppState.execute_request update in open requests if open");
-        let mut open_requests_guard = self.open_requests.lock().unwrap();
-        match open_requests_guard.iter_mut().find(|item| item.id == id) {
-            Some(request) => {
-                match _updated_request {
-                    Some(ref updated_request) => {
-                        request.safe_set_result(
-                            updated_request.result.clone()
-                        )?;
-                    }
-                    None => {
-                        request.safe_set_result(None)?;
-                    }
-                }
-            }
-            None => {}
-        }
-        drop(open_requests_guard);
-
-        info!(
-            "--- AppState.execute_request update in update active requests if active"
-        );
-        let mut active_request_guard = self.active_request.lock().unwrap();
-        match *active_request_guard {
-            Some(ref mut active_request) => {
-                if active_request.id == id {
-                    match _updated_request {
-                        Some(updated_request) => {
-                            active_request.safe_set_result(
-                                updated_request.result
-                            )?;
-                        }
-                        None => {
-                            active_request.safe_set_result(None)?;
-                        }
-                    }
-                }
-            }
-            None => {}
-        }
-        drop(active_request_guard);
 
         info!("<<< AppState.execute_request");
         return Ok(());
@@ -233,7 +190,7 @@ impl AppState {
         if
             let Some(open_request_index) = open_requests_guard
                 .iter()
-                .position(|item| item.id == id)
+                .position(|open_request_id| *open_request_id == id)
         {
             info!("--- AppState.remove_open_request remove");
             open_requests_guard.remove(open_request_index);
@@ -242,16 +199,16 @@ impl AppState {
 
         // Second, update active request if it matches IDs.
         let mut active_request_guard = self.active_request.lock().unwrap();
-        if let Some(active_request) = active_request_guard.as_mut() {
-            if active_request.id == id {
+        if let Some(active_request_id) = active_request_guard.as_mut() {
+            if active_request_id == id {
                 info!("--- AppState.remove_open_request is active");
                 let open_requests_guard = self.open_requests.lock().unwrap();
-                if let Some(last_request) = open_requests_guard.last() {
+                if let Some(last_request_id) = open_requests_guard.last() {
                     info!(
                         "--- AppState.remove_open_request set {:?} as active",
-                        last_request.id
+                        last_request_id
                     );
-                    *active_request = last_request.clone();
+                    *active_request_id = last_request_id.clone();
                 } else {
                     // If there is no last request, we should clear the active_request
                     info!(
@@ -318,24 +275,6 @@ impl AppState {
             request.is_dirty = false;
         }
         drop(requests_guard);
-
-        info!(
-            "--- AppState.save set `isDirty` flags to false for open requests"
-        );
-        let mut open_requests_guard = self.open_requests.lock().unwrap();
-        for open_request in open_requests_guard.iter_mut() {
-            open_request.is_dirty = false;
-        }
-        drop(open_requests_guard);
-
-        info!(
-            "--- AppState.save set `isDirty` flags to false for active request"
-        );
-        let mut active_request_guard = self.active_request.lock().unwrap();
-        if let Some(ref mut active_request) = *active_request_guard {
-            active_request.is_dirty = false;
-        }
-        drop(active_request_guard);
 
         info!(
             "--- AppState.save copy memory state to saved state: active request"
@@ -428,7 +367,7 @@ impl AppState {
         let open_requests = self.open_requests.lock().unwrap();
 
         // Find the request in open_requests
-        if let Some(request) = open_requests.iter().find(|item| item.id == id) {
+        if let Some(request) = open_requests.iter().find(|open_request_id| *open_request_id == id) {
             // Set active request
             let mut active_request = self.active_request.lock().unwrap();
             *active_request = Some(request.clone());
@@ -443,12 +382,12 @@ impl AppState {
         if let Some(request) = requests.iter().find(|item| item.id == id) {
             // Reacquire the open_requests lock to modify it
             let mut open_requests = self.open_requests.lock().unwrap();
-            open_requests.push(request.clone());
+            open_requests.push(request.id.clone());
             drop(open_requests);
 
             // Set active request
             let mut active_request = self.active_request.lock().unwrap();
-            *active_request = Some(request.clone());
+            *active_request = Some(request.id.clone());
             drop(active_request);
             return Ok(());
         }
@@ -497,32 +436,6 @@ impl AppState {
             }
         }
         drop(requests_guard);
-
-        info!("--- AppState.update_request update in open requests if open");
-        let mut open_requests_guard = self.open_requests.lock().unwrap();
-        match open_requests_guard.iter_mut().find(|item| item.id == id) {
-            Some(request) => {
-                request.title = title.to_string();
-                request.safe_set_data(data.clone())?;
-            }
-            None => {}
-        }
-        drop(open_requests_guard);
-
-        info!(
-            "--- AppState.update_request update in update active requests if active"
-        );
-        let mut active_request_guard = self.active_request.lock().unwrap();
-        match *active_request_guard {
-            Some(ref mut active_request) => {
-                if active_request.id == id {
-                    active_request.title = title.to_string();
-                    active_request.safe_set_data(data.clone())?;
-                }
-            }
-            None => {}
-        }
-        drop(active_request_guard);
 
         let result = match _updated_request {
             Some(request) => Ok(request),

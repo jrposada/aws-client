@@ -4,8 +4,6 @@ use tauri::State;
 use crate::{
     services::app_state::AppState,
     types::{
-        rds_data::RdsData,
-        request::Request,
         request_data::RequestData,
         request_type::RequestType,
     },
@@ -36,14 +34,11 @@ pub async fn delete_requests<'r>(
 #[tauri::command]
 pub async fn get_active_request<'r>(
     app_state: State<'r, AppState>
-) -> Result<String, String> {
+) -> Result<Option<String>, String> {
     info!(">>> get_active_request");
-    let result = match serde_json::to_string(&app_state.active_request) {
-        Ok(value) => Ok(value.to_string()),
-        Err(error) => Err(format!("{:?}", error)),
-    };
+    let active_request_guard = app_state.active_request.lock().unwrap();
     info!("<<< get_active_request");
-    return result;
+    return Ok(active_request_guard.clone());
 }
 
 #[tauri::command]
