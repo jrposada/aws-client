@@ -140,7 +140,7 @@ impl AppState {
         }
 
         info!("--- AppState.execute_request execute");
-        let result = RequestExecutor::execute(request.clone()).await?;
+        let result = RequestExecutor::execute(&request).await?;
         
         info!("--- AppState.execute_request set request result");
         {
